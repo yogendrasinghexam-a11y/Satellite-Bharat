@@ -875,6 +875,21 @@
 .qa-warn{font-weight:800}
 @media(max-width:900px){.ops-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 
+
+        .ai-answer a {
+            color: #64d8ff;
+            text-decoration: underline;
+            word-break: break-word;
+        }
+        .ai-answer .ai-source-title {
+            margin-top: 16px;
+            font-weight: 800;
+            color: #eaf2ff;
+        }
+        .ai-answer .ai-source {
+            margin: 6px 0;
+            padding-left: 12px;
+        }
 </style>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         crossorigin=""></script>
@@ -2933,7 +2948,7 @@
                 status.textContent = data.setup_required ? "AI setup is required on the server." : "Could not complete the search.";
                 return;
             }
-            answer.textContent = data.answer || "No answer returned.";
+            answer.innerHTML = formatAIAnswer(data.answer || "No answer returned.");
             answer.classList.add("show");
             status.textContent = `Answered using live web intelligence · ${data.model || "AI"}`;
         } catch (error) {
@@ -2941,6 +2956,42 @@
             answer.classList.add("show");
             status.textContent = "Connection error.";
         } finally { button.disabled = false; }
+    }
+
+    function formatAIAnswer(text) {
+        const raw = String(text || "").replace(/\r/g, "");
+        const normalized = raw.replace(/\[([^\]]+)\]\(\[?(https?:\/\/[^\]\s\)]+)\]?\)/g, "$1 ($2)");
+        const lines = normalized.split("\n");
+        let html = "";
+        let inSources = false;
+
+        for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed) { html += "<div style=\"height:8px\"></div>"; continue; }
+            if (/^#{0,3}\s*(sources|source)\s*:?[ ]*$/i.test(trimmed)) {
+                inSources = true;
+                html += '<div class="ai-source-title">🔗 Sources</div>';
+                continue;
+            }
+            const urlMatch = trimmed.match(/https?:\/\/[^\s<>()\]]+/);
+            if (inSources && urlMatch) {
+                const url = urlMatch[0].replace(/[.,;]+$/, "");
+                const safeUrl = escapeHTML(url);
+                let label = trimmed.replace(urlMatch[0], "").replace(/^[-*]\s*/, "").replace(/[():\-]+\s*$/, "").trim();
+                if (!label) { try { label = new URL(url).hostname; } catch { label = "Source"; } }
+                html += `<div class="ai-source">• ${escapeHTML(label)} — <a href="${safeUrl}" target="_blank" rel="noopener noreferrer">${safeUrl}</a></div>`;
+                continue;
+            }
+            let safe = escapeHTML(trimmed);
+            safe = safe.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+            safe = safe.replace(/(https?:\/\/[^\s<>()\]]+)/g, (u) => {
+                const clean = u.replace(/[.,;]+$/, "");
+                return `<a href="${clean}" target="_blank" rel="noopener noreferrer">${clean}</a>`;
+            });
+            if (/^[-*]\s+/.test(trimmed)) safe = "• " + safe.replace(/^[-*]\s+/, "");
+            html += `<div>${safe}</div>`;
+        }
+        return html;
     }
 
     document.getElementById("aiQuestion").addEventListener("keydown", function(event) {
