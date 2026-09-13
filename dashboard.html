@@ -1036,6 +1036,22 @@
 
         </section>
 
+        <!-- AI SEARCH -->
+        <section class="ai-card">
+            <div class="ai-head">
+                <div>
+                    <h2>🤖 Satellite Bharat AI Search</h2>
+                    <div class="small">Ask questions about current news, weather, earthquakes, natural events and the world.</div>
+                </div>
+                <span class="ai-badge">LIVE WEB INTELLIGENCE</span>
+            </div>
+            <div class="ai-input-row">
+                <input id="aiQuestion" class="ai-input" type="text" placeholder="Example: What major earthquakes happened today?">
+                <button class="btn" id="aiAskButton" onclick="askAISearch()">Ask AI</button>
+            </div>
+            <div id="aiStatus" class="ai-status"></div>
+            <div id="aiAnswer" class="ai-answer"></div>
+        </section>
 
         <!-- ================= TOP CARDS ================= -->
 
@@ -2889,6 +2905,47 @@
     }
 
     setInterval(updateOperationsClock,1000);
+
+
+    /* =====================================================
+       AI SEARCH
+    ===================================================== */
+    async function askAISearch() {
+        const input = document.getElementById("aiQuestion");
+        const answer = document.getElementById("aiAnswer");
+        const status = document.getElementById("aiStatus");
+        const button = document.getElementById("aiAskButton");
+        const question = input.value.trim();
+        if (!question) { status.textContent = "Please enter a question."; return; }
+        button.disabled = true;
+        status.textContent = "Searching live information and preparing an answer…";
+        answer.classList.remove("show");
+        try {
+            const response = await fetch("/api/ai-search", {
+                method: "POST",
+                headers: {"Content-Type":"application/json"},
+                body: JSON.stringify({question, location: currentLocation})
+            });
+            const data = await response.json();
+            if (!data.ok) {
+                answer.textContent = data.error || "AI Search is unavailable.";
+                answer.classList.add("show");
+                status.textContent = data.setup_required ? "AI setup is required on the server." : "Could not complete the search.";
+                return;
+            }
+            answer.textContent = data.answer || "No answer returned.";
+            answer.classList.add("show");
+            status.textContent = `Answered using live web intelligence · ${data.model || "AI"}`;
+        } catch (error) {
+            answer.textContent = "AI Search is temporarily unavailable.";
+            answer.classList.add("show");
+            status.textContent = "Connection error.";
+        } finally { button.disabled = false; }
+    }
+
+    document.getElementById("aiQuestion").addEventListener("keydown", function(event) {
+        if (event.key === "Enter") askAISearch();
+    });
 
     /* =====================================================
        LOAD EVERYTHING
