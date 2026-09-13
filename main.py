@@ -401,9 +401,18 @@ User question: {question}
 
 Answer the question using current web information when the question is time-sensitive,
 location-specific, news-related, or asks what is happening now. Prefer authoritative
-and primary sources when possible. Do not invent facts. Clearly distinguish confirmed
-facts from uncertainty. For emergencies, do not present yourself as an official warning\nsystem. Keep the answer concise and useful. Include a short 'Sources' section with
-clickable source references when web results are used."""
+and primary sources. For India, prioritize IMD, NDMA/SACHET, National Centre for Seismology,
+ISRO, government departments, and other official agencies when relevant. For global events,
+prefer USGS, NASA, NOAA, WHO, national governments, and other primary sources. Avoid weak
+aggregators, scraped pages, social-media mirrors, or SEO sites when a reliable primary source
+is available. Do not invent facts. Clearly distinguish confirmed facts from uncertainty.
+For emergencies, do not present yourself as an official warning system. Keep the answer concise.
+Use this exact structure when web sources are used:
+1. ANSWER — the useful answer in 2-6 short paragraphs or bullets.
+2. STATUS — one short line saying Confirmed, Developing, or Unverified where useful.
+3. SOURCES — a short bullet list. Each source line MUST contain a normal URL beginning with https://.
+Do not wrap URLs in Markdown link syntax and do not put brackets around URLs. Use only sources
+actually consulted for the answer. If no web source was needed, omit SOURCES."""
 
         response = client.responses.create(
             model=model,
