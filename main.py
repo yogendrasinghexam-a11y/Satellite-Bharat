@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 import httpx
 import asyncio
+import os
 from datetime import datetime, timezone
 from math import radians, sin, cos, asin, sqrt
 
@@ -362,6 +363,72 @@ async def brief(
         )
     }
 
+
+
+# =========================================================
+# AI SEARCH / LIVE ANSWER
+# =========================================================
+
+@app.post("/api/ai-search")
+async def ai_search(payload: dict):
+    """
+    Answer a user's question using the OpenAI Responses API with web search.
+    The API key is read only from the server-side OPENAI_API_KEY environment
+    variable and is never exposed to the browser.
+    """
+    question = str((payload or {}).get("question") or "").strip()
+    location = str((payload or {}).get("location") or current_location_for_ai())
+
+    if not question:
+        return {"ok": False, "error": "Please enter a question."}
+
+    api_key = os.getenv("OPENAI_API_KEY", "").strip()
+    if not api_key:
+        return {
+            "ok": False,
+            "setup_required": True,
+            "error": "AI Search is not connected yet. Add OPENAI_API_KEY in Render Environment Variables."
+        }
+
+    try:
+        from openai import OpenAI
+        client = OpenAI(api_key=api_key)
+        model = os.getenv("OPENAI_MODEL", "gpt-5.6-luna")
+
+        prompt = f"""You are Satellite Bharat's live Earth-intelligence assistant.
+Current user location: {location}
+User question: {question}
+
+Answer the question using current web information when the question is time-sensitive,
+location-specific, news-related, or asks what is happening now. Prefer authoritative
+and primary sources when possible. Do not invent facts. Clearly distinguish confirmed
+facts from uncertainty. For emergencies, do not present yourself as an official warning\nsystem. Keep the answer concise and useful. Include a short 'Sources' section with
+clickable source references when web results are used."""
+
+        response = client.responses.create(
+            model=model,
+            tools=[{"type": "web_search"}],
+            input=prompt,
+            max_output_tokens=900
+        )
+
+        return {
+            "ok": True,
+            "question": question,
+            "location": location,
+            "answer": response.output_text or "No answer was returned.",
+            "model": model
+        }
+
+    except Exception as e:
+        return {
+            "ok": False,
+            "error": f"AI Search error: {str(e)}"
+        }
+
+
+def current_location_for_ai():
+    return "Delhi"
 
 # =========================================================
 # DISTANCE CALCULATION
