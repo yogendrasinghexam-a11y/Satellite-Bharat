@@ -1,0 +1,3004 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <!-- Prevent favicon 404 -->
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        crossorigin="">
+
+    <title>Satellite Bharat — Final V1.0</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100%;
+            font-family:
+                Inter,
+                Arial,
+                Helvetica,
+                sans-serif;
+            background: #07111f;
+            color: #eaf2ff;
+        }
+
+        body {
+            overflow-x: hidden;
+        }
+
+        button,
+        input,
+        select {
+            font: inherit;
+        }
+
+        .app {
+            min-height: 100vh;
+            background:
+                radial-gradient(
+                    circle at 10% 0%,
+                    rgba(37, 99, 235, 0.16),
+                    transparent 28%
+                ),
+                radial-gradient(
+                    circle at 90% 10%,
+                    rgba(14, 165, 233, 0.12),
+                    transparent 25%
+                ),
+                #07111f;
+        }
+
+        /* ================= HEADER ================= */
+
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            padding: 15px 24px;
+
+            background: rgba(7, 17, 31, 0.92);
+            backdrop-filter: blur(18px);
+
+            border-bottom: 1px solid #1d3149;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+        }
+
+        .brand-icon {
+            width: 42px;
+            height: 42px;
+
+            display: grid;
+            place-items: center;
+
+            border-radius: 12px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #2563eb,
+                    #06b6d4
+                );
+
+            font-size: 22px;
+            box-shadow: 0 0 25px rgba(37, 99, 235, 0.35);
+        }
+
+        .brand-title {
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: 0.4px;
+        }
+
+        .phase {
+            margin-top: 3px;
+
+            color: #64d8ff;
+            font-size: 11px;
+            font-weight: 800;
+
+            letter-spacing: 1.4px;
+        }
+
+        .header-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+
+            font-size: 12px;
+            color: #a9bad0;
+        }
+
+        .status-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: #22c55e;
+
+            box-shadow:
+                0 0 0 4px rgba(34, 197, 94, 0.12),
+                0 0 15px rgba(34, 197, 94, 0.5);
+        }
+
+        /* ================= MAIN ================= */
+
+        main {
+            max-width: 1500px;
+            margin: auto;
+            padding: 24px;
+        }
+
+        .hero {
+            display: grid;
+            grid-template-columns: 1.4fr 1fr;
+            gap: 18px;
+
+            margin-bottom: 18px;
+        }
+
+        .hero-card {
+            padding: 25px;
+
+            border: 1px solid #203752;
+            border-radius: 20px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(16, 35, 58, 0.92),
+                    rgba(8, 21, 37, 0.92)
+                );
+
+            box-shadow:
+                0 20px 60px rgba(0, 0, 0, 0.25);
+        }
+
+        .hero h1 {
+            margin: 0 0 8px;
+
+            font-size: clamp(25px, 4vw, 42px);
+            line-height: 1.05;
+        }
+
+        .hero p {
+            margin: 0;
+
+            max-width: 720px;
+
+            color: #9fb2c9;
+            line-height: 1.65;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 9px;
+
+            margin-top: 20px;
+        }
+
+        .search-box input {
+            width: 100%;
+
+            padding: 12px 14px;
+
+            color: white;
+            background: #0b1b2e;
+
+            border: 1px solid #29435f;
+            border-radius: 10px;
+
+            outline: none;
+        }
+
+        .search-box input:focus {
+            border-color: #38bdf8;
+        }
+
+        .btn {
+            border: 0;
+            border-radius: 10px;
+
+            padding: 11px 17px;
+
+            color: white;
+            font-weight: 700;
+
+            cursor: pointer;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #2563eb,
+                    #0891b2
+                );
+
+            transition: 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.12);
+        }
+
+        .location-box {
+            display: grid;
+            gap: 12px;
+        }
+
+        .location-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+
+            padding: 12px 0;
+
+            border-bottom: 1px solid #203752;
+        }
+
+        .location-row:last-child {
+            border-bottom: 0;
+        }
+
+        .label {
+            color: #8095ad;
+            font-size: 12px;
+        }
+
+        .value {
+            font-weight: 700;
+        }
+
+        /* ================= GRID ================= */
+
+        .grid {
+            display: grid;
+            grid-template-columns:
+                repeat(4, minmax(0, 1fr));
+
+            gap: 16px;
+
+            margin-bottom: 18px;
+        }
+
+        .card {
+            min-width: 0;
+
+            padding: 18px;
+
+            border: 1px solid #1d344e;
+            border-radius: 17px;
+
+            background: #0b192b;
+
+            box-shadow:
+                0 12px 35px rgba(0, 0, 0, 0.16);
+        }
+
+        .card-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            margin-bottom: 14px;
+        }
+
+        .card-title h2 {
+            margin: 0;
+
+            font-size: 15px;
+        }
+
+        .small {
+            color: #7990aa;
+            font-size: 11px;
+        }
+
+        .big-number {
+            font-size: 34px;
+            font-weight: 800;
+
+            margin: 7px 0;
+        }
+
+        .muted {
+            color: #8ea3ba;
+            font-size: 12px;
+        }
+
+        /* ================= WEATHER ================= */
+
+        .weather-temp {
+            font-size: 42px;
+            font-weight: 800;
+        }
+
+        .weather-grid {
+            display: grid;
+            grid-template-columns:
+                repeat(3, 1fr);
+
+            gap: 8px;
+
+            margin-top: 14px;
+        }
+
+        .weather-item {
+            padding: 10px;
+
+            background: #0f243b;
+            border-radius: 10px;
+        }
+
+        .weather-item span {
+            display: block;
+
+            color: #7891aa;
+            font-size: 10px;
+
+            margin-bottom: 5px;
+        }
+
+        .weather-item strong {
+            font-size: 13px;
+        }
+
+        /* ================= RISK ================= */
+
+        .risk-circle {
+            width: 115px;
+            height: 115px;
+
+            margin: 8px auto 12px;
+
+            display: grid;
+            place-items: center;
+
+            border-radius: 50%;
+
+            background:
+                radial-gradient(
+                    circle,
+                    #0b192b 57%,
+                    transparent 58%
+                ),
+                conic-gradient(
+                    #22c55e var(--risk),
+                    #17283d 0
+                );
+        }
+
+        .risk-score {
+            text-align: center;
+        }
+
+        .risk-score strong {
+            display: block;
+            font-size: 27px;
+        }
+
+        .risk-score span {
+            font-size: 10px;
+            color: #8297ad;
+        }
+
+        .risk-level {
+            text-align: center;
+
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+
+        /* ================= FULL WIDTH ================= */
+
+        .wide {
+            grid-column: span 2;
+        }
+
+        .full {
+            grid-column: 1 / -1;
+        }
+
+        /* ================= EVENTS ================= */
+
+        .event-list {
+            max-height: 340px;
+            overflow-y: auto;
+        }
+
+        .event {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+
+            padding: 12px 0;
+
+            border-bottom: 1px solid #1b3047;
+        }
+
+        .event:last-child {
+            border-bottom: 0;
+        }
+
+        .event-icon {
+            width: 34px;
+            height: 34px;
+
+            flex: 0 0 34px;
+
+            display: grid;
+            place-items: center;
+
+            border-radius: 9px;
+
+            background: #102b45;
+        }
+
+        .event-body {
+            min-width: 0;
+        }
+
+        .event-title {
+            font-size: 13px;
+            font-weight: 700;
+
+            margin-bottom: 4px;
+        }
+
+        .event-meta {
+            color: #778da6;
+            font-size: 10px;
+        }
+
+        /* ================= NEWS ================= */
+
+        .news-list {
+            max-height: 390px;
+            overflow-y: auto;
+        }
+
+        .news-item {
+            padding: 12px 0;
+
+            border-bottom: 1px solid #1b3047;
+        }
+
+        .news-item:last-child {
+            border-bottom: 0;
+        }
+
+        .news-item a {
+            color: #dcecff;
+            text-decoration: none;
+
+            font-size: 13px;
+            font-weight: 700;
+
+            line-height: 1.45;
+        }
+
+        .news-item a:hover {
+            color: #60d9ff;
+        }
+
+        .news-meta {
+            margin-top: 6px;
+
+            color: #71869d;
+            font-size: 10px;
+        }
+
+        /* ================= SATELLITE ================= */
+
+        .satellite-box {
+            min-height: 250px;
+
+            display: grid;
+            place-items: center;
+
+            text-align: center;
+
+            border-radius: 14px;
+
+            background:
+                linear-gradient(
+                    rgba(5, 15, 26, 0.35),
+                    rgba(5, 15, 26, 0.75)
+                ),
+                url("https://eoimages.gsfc.nasa.gov/images/imagerecords/150000/150132/world.201612.3x3.jpg");
+
+            background-size: cover;
+            background-position: center;
+        }
+
+        .satellite-content {
+            padding: 20px;
+
+            background: rgba(3, 10, 18, 0.78);
+            border: 1px solid rgba(255,255,255,0.1);
+
+            border-radius: 14px;
+
+            backdrop-filter: blur(8px);
+        }
+
+        .satellite-content h3 {
+            margin: 0 0 7px;
+        }
+
+        .satellite-content p {
+            margin: 0 0 14px;
+
+            color: #9db0c5;
+            font-size: 12px;
+        }
+
+        /* ================= ALERT ================= */
+
+        .alert-box {
+            padding: 16px;
+
+            border-radius: 13px;
+
+            background: #0e2237;
+            border: 1px solid #29445e;
+        }
+
+        .alert-level {
+            font-size: 23px;
+            font-weight: 900;
+
+            margin-bottom: 5px;
+        }
+
+        .alert-reasons {
+            margin-top: 14px;
+        }
+
+        .reason {
+            padding: 8px 0;
+
+            border-bottom: 1px solid #1e354c;
+
+            color: #a8bbcf;
+            font-size: 12px;
+        }
+
+        /* ================= FOOTER ================= */
+
+        footer {
+            max-width: 1500px;
+
+            margin: auto;
+            padding: 20px 24px 35px;
+
+            color: #60768f;
+            font-size: 11px;
+
+            text-align: center;
+        }
+
+        /* ================= LOADING ================= */
+
+        .loading {
+            color: #6e849c;
+            font-size: 12px;
+        }
+
+        .error {
+            color: #fca5a5;
+            font-size: 12px;
+        }
+
+
+        /* ================= PHASE 39–42 MAPS ================= */
+
+        .map-toolbar {
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:10px;
+            flex-wrap:wrap;
+            margin-bottom:12px;
+        }
+
+        .map-legend {
+            display:flex;
+            gap:12px;
+            flex-wrap:wrap;
+            color:#8ea3ba;
+            font-size:11px;
+        }
+
+        .legend-item {
+            display:inline-flex;
+            align-items:center;
+            gap:5px;
+        }
+
+        .legend-dot {
+            width:9px;
+            height:9px;
+            border-radius:50%;
+            display:inline-block;
+        }
+
+        .map {
+            width:100%;
+            height:430px;
+            border-radius:14px;
+            overflow:hidden;
+            border:1px solid #203752;
+            background:#081525;
+        }
+
+        .map-status {
+            color:#7990aa;
+            font-size:11px;
+        }
+
+        .search-status {
+            margin-top:8px;
+            min-height:16px;
+            color:#7990aa;
+            font-size:11px;
+        }
+
+        .location-results {
+            position:relative;
+            z-index:100;
+            margin-top:8px;
+        }
+
+        .location-option {
+            padding:9px 11px;
+            background:#0d2238;
+            border:1px solid #203752;
+            border-radius:8px;
+            margin-top:5px;
+            cursor:pointer;
+            font-size:12px;
+            color:#dcecff;
+        }
+
+        .location-option:hover {
+            border-color:#38bdf8;
+            background:#102b45;
+        }
+
+        .map-card-note {
+            margin-top:8px;
+            color:#6f849c;
+            font-size:10px;
+        }
+
+        .refresh-btn {
+            display:inline-flex;
+            align-items:center;
+            gap:7px;
+        }
+
+        .refresh-btn.spinning span {
+            display:inline-block;
+            animation:spin .8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform:rotate(360deg); }
+        }
+
+        /* ================= PHASE 47–50 SMART INTELLIGENCE ================= */
+        .map-filters { display:flex; gap:7px; flex-wrap:wrap; margin-bottom:10px; }
+        .filter-btn { padding:7px 10px; border:1px solid #29445e; background:#0b1c2f; color:#9db0c5; border-radius:8px; cursor:pointer; font-size:11px; }
+        .filter-btn.active { border-color:#38bdf8; color:#e6f5ff; background:#12304b; }
+        .nearby-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+        .nearby-list { max-height:300px; overflow:auto; }
+        .nearby-item { padding:10px 0; border-bottom:1px solid #1b3047; }
+        .nearby-item:last-child { border-bottom:0; }
+        .nearby-title { font-size:12px; font-weight:700; }
+        .nearby-meta { margin-top:4px; color:#7d93aa; font-size:10px; }
+        .risk-summary { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:12px; }
+        .risk-stat { padding:10px; background:#0f243b; border-radius:9px; }
+        .risk-stat span { display:block; color:#7891aa; font-size:10px; margin-bottom:4px; }
+        .risk-stat strong { font-size:14px; }
+        @media (max-width:700px) { .nearby-grid,.risk-summary { grid-template-columns:1fr; } }
+
+
+        /* ================= PHASE 47–50 SMART MONITORING ================= */
+        .monitor-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:10px; }
+        .monitor-stat { padding:11px; background:#0f243b; border:1px solid #203752; border-radius:9px; }
+        .monitor-stat span { display:block; color:#7891aa; font-size:10px; margin-bottom:5px; }
+        .monitor-stat strong { font-size:15px; }
+        .event-tools { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:10px; }
+        .event-tools select, .event-tools input { background:#0b1c2f; color:#dcecff; border:1px solid #29445e; border-radius:8px; padding:8px 10px; font-size:11px; }
+        .event-table-wrap { overflow:auto; max-height:420px; border:1px solid #203752; border-radius:10px; }
+        .event-table { width:100%; border-collapse:collapse; font-size:11px; min-width:720px; }
+        .event-table th { position:sticky; top:0; background:#10263d; color:#8fa7bf; text-align:left; padding:9px; }
+        .event-table td { padding:9px; border-top:1px solid #1b3148; color:#d6e5f3; }
+        .event-table tr:hover td { background:#10263d; }
+        .severity-high { color:#fca5a5 !important; }
+        .severity-medium { color:#fcd34d !important; }
+        .severity-low { color:#93c5fd !important; }
+        .monitor-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+        .countdown { color:#38bdf8; }
+        @media (max-width:900px) { .monitor-grid { grid-template-columns:repeat(2,1fr); } }
+        @media (max-width:600px) { .monitor-grid { grid-template-columns:1fr; } }
+
+
+        .ops-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}.ops-stat{padding:12px;background:#0f243b;border:1px solid #203752;border-radius:9px}.ops-stat span{display:block;color:#7891aa;font-size:10px;margin-bottom:5px}.ops-stat strong{font-size:18px}.ops-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.analytics-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:14px}.bar-row{display:grid;grid-template-columns:90px 1fr 42px;gap:8px;align-items:center;margin:9px 0;font-size:11px}.bar-track{height:9px;border-radius:99px;background:#12283f;overflow:hidden}.bar-fill{height:100%;border-radius:99px;background:#38bdf8;width:0%;transition:width .4s ease}.nearest-box{padding:12px;background:#0f243b;border:1px solid #203752;border-radius:10px}.nearest-title{font-size:14px;font-weight:700}.nearest-meta{margin-top:6px;color:#8da3b8;font-size:11px;line-height:1.6}.watch-badge{display:inline-block;margin-top:8px;padding:5px 8px;border-radius:7px;font-size:10px;font-weight:700}.watch-low{background:#12304b;color:#93c5fd}.watch-medium{background:#3b3010;color:#fcd34d}.watch-high{background:#451b1b;color:#fca5a5}@media(max-width:900px){.ops-grid,.analytics-grid{grid-template-columns:repeat(2,1fr)}.analytics-grid{grid-template-columns:1fr}}@media(max-width:600px){.ops-grid{grid-template-columns:1fr 1fr}}
+
+
+        /* ================= PHASE 63–66 INTELLIGENCE SUITE ================= */
+        .command-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:12px}
+        .command-stat{padding:14px;border:1px solid #203752;border-radius:12px;background:#0b1d31}
+        .command-stat span{display:block;color:#7990aa;font-size:11px;margin-bottom:7px}
+        .command-stat strong{font-size:22px;color:#dcecff}
+        .command-stat small{display:block;color:#6f849c;font-size:10px;margin-top:5px}
+        .health-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+        .health-item{padding:11px;border-radius:10px;background:#0b1d31;border:1px solid #203752}
+        .health-item .ok{font-weight:700}
+        .hotspot-list{display:grid;gap:8px}
+        .hotspot{display:grid;grid-template-columns:32px 1fr auto;gap:10px;align-items:center;padding:9px;border-bottom:1px solid #203752}
+        .hotspot:last-child{border-bottom:0}
+        .hotspot-rank{font-weight:700;font-size:13px}
+        .hotspot-title{font-size:12px;color:#dcecff}
+        .hotspot-meta{font-size:10px;color:#7990aa;margin-top:3px}
+        .hotspot-score{font-weight:700;font-size:12px}
+        .command-note{color:#7990aa;font-size:10px;margin-top:8px}
+        @media(max-width:900px){.command-grid,.health-grid{grid-template-columns:1fr 1fr}}
+        @media(max-width:600px){.command-grid,.health-grid{grid-template-columns:1fr}}
+
+        /* ================= RESPONSIVE ================= */
+
+        @media (max-width: 1100px) {
+
+            .grid {
+                grid-template-columns:
+                    repeat(2, minmax(0, 1fr));
+            }
+
+            .hero {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 700px) {
+
+            header {
+                padding: 12px 15px;
+            }
+
+            .header-status {
+                display: none;
+            }
+
+            main {
+                padding: 15px;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .wide,
+            .full {
+                grid-column: auto;
+            }
+
+            .weather-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .search-box {
+                flex-direction: column;
+            }
+        }
+    
+
+        /* PHASE 59–62 */
+        .intel-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:14px}
+        .inspector{min-height:180px;padding:16px;border:1px solid rgba(56,189,248,.18);border-radius:14px;background:rgba(2,12,28,.55)}
+        .inspector-title{font-size:18px;font-weight:800;margin-bottom:8px}
+        .inspector-meta{color:#9fb4ca;font-size:13px;line-height:1.7}
+        .inspector-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+        .timeline-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+        .timeline-stat{padding:14px;border-radius:12px;border:1px solid rgba(56,189,248,.15);background:rgba(8,25,48,.55)}
+        .timeline-stat span{display:block;color:#8da5bc;font-size:12px}.timeline-stat strong{display:block;font-size:25px;margin-top:5px}
+        .timeline-bars{display:grid;gap:9px;margin-top:14px}
+        .time-row{display:grid;grid-template-columns:90px 1fr 45px;align-items:center;gap:10px;font-size:12px}
+        .time-track{height:9px;border-radius:99px;background:rgba(148,163,184,.14);overflow:hidden}.time-fill{height:100%;width:0;border-radius:99px;background:#38bdf8;transition:width .4s ease}
+        .snapshot-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+        .snapshot-item{padding:13px;border-radius:12px;background:rgba(8,25,48,.5);border:1px solid rgba(56,189,248,.14)}
+        .snapshot-item span{display:block;color:#8da5bc;font-size:11px}.snapshot-item strong{display:block;margin-top:5px;font-size:15px;word-break:break-word}
+        .audit-log{max-height:230px;overflow:auto;border-radius:12px;border:1px solid rgba(56,189,248,.14);background:rgba(2,12,28,.45)}
+        .audit-row{display:grid;grid-template-columns:85px 100px 1fr;gap:10px;padding:9px 12px;border-bottom:1px solid rgba(148,163,184,.08);font-size:12px}.audit-row:last-child{border-bottom:0}.audit-ok{color:#4ade80}.audit-warn{color:#fbbf24}.audit-bad{color:#fb7185}
+        .inspect-btn{padding:5px 8px;border-radius:7px;border:1px solid rgba(56,189,248,.3);background:rgba(14,116,144,.18);color:#dff6ff;cursor:pointer;font-size:11px}
+
+        .brief-panel{padding:14px 16px;border:1px solid #244563;border-radius:12px;background:#081a2d;color:#dcecff;line-height:1.55;margin-bottom:12px}
+        .brief-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+        .brief-item{border:1px solid #203752;border-radius:10px;padding:12px;background:#071426}.brief-item span{display:block;color:#8fa7bf;font-size:11px}.brief-item strong{display:block;font-size:21px;margin-top:5px}
+        .distribution-grid{display:grid;gap:11px}.distribution-row{display:grid;grid-template-columns:130px 1fr 45px;gap:10px;align-items:center;color:#cfe2f4;font-size:12px}.distribution-track{height:9px;background:#10263d;border-radius:10px;overflow:hidden}.distribution-fill{height:100%;width:0;background:#1687e8;border-radius:10px;transition:width .4s ease}
+        @media(max-width:900px){.brief-grid{grid-template-columns:repeat(2,1fr)}.distribution-row{grid-template-columns:105px 1fr 35px}}
+        @media(max-width:900px){.intel-grid,.snapshot-grid{grid-template-columns:1fr}.timeline-grid{grid-template-columns:repeat(2,1fr)}}
+
+
+/* =====================================================
+   FINAL V1.0 RELEASE CENTER
+===================================================== */
+.release-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:12px}
+.release-stat{padding:14px;border:1px solid rgba(70,170,255,.25);border-radius:14px;background:rgba(4,18,38,.72)}
+.release-stat .big{font-size:24px;font-weight:800;margin-top:5px}
+.release-stat .ok{font-weight:700}
+.release-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.release-actions button{min-width:150px}
+.readiness{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:12px}
+.readiness-row{display:flex;justify-content:space-between;gap:10px;padding:10px 12px;border-radius:10px;background:rgba(255,255,255,.035)}
+.readiness-row span:last-child{font-weight:700}
+.final-note{margin-top:12px;padding:11px 13px;border-left:3px solid #38a8ff;border-radius:8px;background:rgba(30,130,220,.08);line-height:1.5}
+@media(max-width:900px){.release-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.readiness{grid-template-columns:1fr}}
+
+
+/* =====================================================
+   FINAL V1.0 RELEASE CENTER
+===================================================== */
+.ops-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:12px}
+.ops-stat{padding:14px;border:1px solid rgba(70,170,255,.25);border-radius:14px;background:rgba(4,18,38,.72)}
+.ops-stat .big{font-size:24px;font-weight:800;margin-top:5px}
+.ops-table{display:grid;gap:8px;margin-top:12px}
+.ops-row{display:flex;justify-content:space-between;gap:12px;padding:10px 12px;border-radius:10px;background:rgba(255,255,255,.035);font-size:13px}
+.ops-row span:last-child{font-weight:700}
+.ops-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.ops-actions button{min-width:150px}
+.qa-ok{font-weight:800}
+.qa-warn{font-weight:800}
+@media(max-width:900px){.ops-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+</style>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        crossorigin=""></script>
+</head>
+
+
+<body>
+
+<div class="app">
+
+    <!-- ================= HEADER ================= -->
+
+    <header>
+
+        <div class="brand">
+
+            <div class="brand-icon">
+                🛰️
+            </div>
+
+            <div>
+                <div class="brand-title">
+                    SATELLITE BHARAT
+                </div>
+
+                <div class="phase">
+                    FINAL V1.0 · RELEASE CENTER
+                </div>
+            </div>
+
+        </div>
+
+        <div class="header-status">
+
+            <span class="status-dot"></span>
+
+            <span id="systemStatus">
+                SYSTEM ONLINE
+            </span>
+
+        </div>
+
+    </header>
+
+
+    <!-- ================= MAIN ================= -->
+
+    <main>
+
+        <!-- HERO -->
+
+        <section class="hero">
+
+            <div class="hero-card">
+
+                <h1>
+                    Earth Intelligence Dashboard
+                </h1>
+
+                <p>
+                    Satellite, weather, earthquake, natural-event,
+                    news and risk information in one dashboard.
+                </p>
+
+                <div class="search-box">
+
+                    <input
+                        id="locationInput"
+                        type="text"
+                        value="Delhi"
+                        placeholder="Search location..."
+                    >
+
+                    <button
+                        class="btn"
+                        onclick="searchLocation()"
+                    >
+                        🔎 Search
+                    </button>
+
+                    <button
+                        class="btn refresh-btn"
+                        id="refreshButton"
+                        onclick="refreshDashboard()"
+                        title="Refresh all live data"
+                    >
+                        <span>↻</span> Refresh
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <div class="hero-card">
+
+                <div class="card-title">
+                    <h2>Current Location</h2>
+                    <span class="small">DEFAULT</span>
+                </div>
+
+                <div class="location-box">
+
+                    <div class="location-row">
+                        <span class="label">
+                            Location
+                        </span>
+
+                        <span
+                            class="value"
+                            id="locationName"
+                        >
+                            Delhi
+                        </span>
+                    </div>
+
+                    <div class="location-row">
+                        <span class="label">
+                            Latitude
+                        </span>
+
+                        <span
+                            class="value"
+                            id="latitude"
+                        >
+                            28.6139
+                        </span>
+                    </div>
+
+                    <div class="location-row">
+                        <span class="label">
+                            Longitude
+                        </span>
+
+                        <span
+                            class="value"
+                            id="longitude"
+                        >
+                            77.2090
+                        </span>
+                    </div>
+
+                    <div class="location-row">
+                        <span class="label">
+                            Last update
+                        </span>
+
+                        <span
+                            class="value"
+                            id="lastUpdate"
+                        >
+                            —
+                        </span>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ================= TOP CARDS ================= -->
+
+        <section class="grid">
+
+            <!-- WEATHER -->
+
+            <div class="card">
+
+                <div class="card-title">
+                    <h2>🌤️ Weather</h2>
+                    <span class="small">
+                        Open-Meteo
+                    </span>
+                </div>
+
+                <div id="weather">
+                    <div class="loading">
+                        Loading weather...
+                    </div>
+                </div>
+
+            </div>
+
+
+            <!-- EARTHQUAKE -->
+
+            <div class="card">
+
+                <div class="card-title">
+                    <h2>🌎 Earthquakes</h2>
+                    <span class="small">
+                        USGS
+                    </span>
+                </div>
+
+                <div
+                    class="big-number"
+                    id="earthquakeCount"
+                >
+                    —
+                </div>
+
+                <div class="muted">
+                    Events detected today
+                </div>
+
+                <div
+                    class="muted"
+                    id="largestEarthquake"
+                    style="margin-top:10px;"
+                >
+                    Loading...
+                </div>
+
+            </div>
+
+
+            <!-- NATURAL EVENTS -->
+
+            <div class="card">
+
+                <div class="card-title">
+                    <h2>🌋 Natural Events</h2>
+                    <span class="small">
+                        NASA EONET
+                    </span>
+                </div>
+
+                <div
+                    class="big-number"
+                    id="eventCount"
+                >
+                    —
+                </div>
+
+                <div class="muted">
+                    Open NASA events
+                </div>
+
+            </div>
+
+
+            <!-- RISK -->
+
+            <div class="card">
+
+                <div class="card-title">
+                    <h2>⚠️ Risk Indicator</h2>
+                    <span class="small">
+                        Prototype
+                    </span>
+                </div>
+
+                <div
+                    class="risk-circle"
+                    id="riskCircle"
+                    style="--risk: 0%;"
+                >
+
+                    <div class="risk-score">
+
+                        <strong id="riskScore">
+                            —
+                        </strong>
+
+                        <span>
+                            SCORE
+                        </span>
+
+                    </div>
+
+                </div>
+
+                <div
+                    class="risk-level"
+                    id="riskLevel"
+                >
+                    LOADING
+                </div>
+
+            </div>
+
+
+            <!-- SATELLITE -->
+
+            <div class="card wide">
+
+                <div class="card-title">
+                    <h2>🛰️ Satellite Intelligence</h2>
+                    <span class="small">
+                        NASA GIBS
+                    </span>
+                </div>
+
+                <div class="satellite-box">
+
+                    <div class="satellite-content">
+
+                        <h3>
+                            NASA Worldview
+                        </h3>
+
+                        <p id="satelliteNote">
+                            Loading satellite information...
+                        </p>
+
+                        <button
+                            class="btn"
+                            onclick="openSatellite()"
+                        >
+                            Open Satellite Map
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- ALERT CENTER -->
+
+            <div class="card wide">
+
+                <div class="card-title">
+                    <h2>🚨 Alert Center</h2>
+                    <span class="small">
+                        LIVE CHECK
+                    </span>
+                </div>
+
+                <div
+                    class="alert-box"
+                    id="alertCenter"
+                >
+                    <div class="loading">
+                        Loading alert center...
+                    </div>
+                </div>
+
+            </div>
+
+
+
+
+
+            <!-- PHASE 63–66 INTELLIGENCE SUITE -->
+            <div class="card full">
+                <div class="card-title"><h2>🧠 Advanced Earth Intelligence</h2><span class="small" id="opsStatus">ANALYZING</span></div>
+                <div class="ops-grid">
+                    <div class="ops-stat"><span>Events within 100 km</span><strong id="ops100">0</strong></div>
+                    <div class="ops-stat"><span>Events within 250 km</span><strong id="ops250">0</strong></div>
+                    <div class="ops-stat"><span>Events within 500 km</span><strong id="ops500">0</strong></div>
+                    <div class="ops-stat"><span>Strongest nearby EQ</span><strong id="opsStrongest">—</strong></div>
+                </div>
+                <div class="ops-actions">
+                    <button class="btn" onclick="setAnalysisRadius(100)">100 km</button><button class="btn" onclick="setAnalysisRadius(250)">250 km</button><button class="btn" onclick="setAnalysisRadius(500)">500 km</button><button class="btn" onclick="setAnalysisRadius(1000)">1000 km</button><button class="btn" onclick="exportSituationSnapshot()">⬇ Export Snapshot</button>
+                </div>
+            </div>
+            <div class="card full">
+                <div class="card-title"><h2>📈 Situation Analytics</h2><span class="small" id="analyticsStatus">LIVE</span></div>
+                <div class="analytics-grid">
+                    <div>
+                        <div class="bar-row"><span>Earthquakes</span><div class="bar-track"><div class="bar-fill" id="eqBar"></div></div><strong id="eqBarValue">0</strong></div>
+                        <div class="bar-row"><span>Natural events</span><div class="bar-track"><div class="bar-fill" id="natBar"></div></div><strong id="natBarValue">0</strong></div>
+                        <div class="bar-row"><span>High severity</span><div class="bar-track"><div class="bar-fill" id="highBar"></div></div><strong id="highBarValue">0</strong></div>
+                        <div class="bar-row"><span>Medium</span><div class="bar-track"><div class="bar-fill" id="medBar"></div></div><strong id="medBarValue">0</strong></div>
+                    </div>
+                    <div class="nearest-box"><div class="nearest-title">🎯 Nearest significant signal</div><div class="nearest-meta" id="nearestSignal">Waiting for live event data...</div><div id="watchBadge" class="watch-badge watch-low">LOW WATCH</div></div>
+                </div>
+            </div>
+
+            <!-- SMART MONITORING CENTER -->
+            <div class="card full">
+                <div class="card-title">
+                    <h2>📡 Smart Monitoring Center</h2>
+                    <span class="small" id="monitorStatus">LIVE</span>
+                </div>
+                <div class="monitor-grid">
+                    <div class="monitor-stat"><span>System</span><strong id="monitorSystem">ONLINE</strong></div>
+                    <div class="monitor-stat"><span>Last refresh</span><strong id="monitorLastRefresh">—</strong></div>
+                    <div class="monitor-stat"><span>Next refresh</span><strong class="countdown" id="monitorCountdown">60s</strong></div>
+                    <div class="monitor-stat"><span>Selected location</span><strong id="monitorLocation">Delhi</strong></div>
+                </div>
+                <div class="monitor-actions">
+                    <button class="btn" id="autoRefreshButton" onclick="toggleAutoRefresh()">⏸ Pause Auto Refresh</button>
+                    <button class="btn" onclick="exportEventReport()">⬇ Export Event Report</button>
+                </div>
+            </div>
+
+            <!-- SMART EVENT TABLE -->
+            <div class="card full">
+                <div class="card-title">
+                    <h2>📊 Event Intelligence Table</h2>
+                    <span class="small" id="eventTableStatus">ALL EVENTS</span>
+                </div>
+                <div class="event-tools">
+                    <select id="eventTypeFilter" onchange="renderEventTable()">
+                        <option value="all">All events</option>
+                        <option value="earthquake">Earthquakes</option>
+                        <option value="natural">Natural events</option>
+                    </select>
+                    <select id="eventSeverityFilter" onchange="renderEventTable()">
+                        <option value="all">All severity</option>
+                        <option value="high">High</option>
+                        <option value="medium">Medium</option>
+                        <option value="low">Low</option>
+                    </select>
+                    <input id="eventDistanceFilter" type="number" min="1" max="20000" value="500"
+                        onchange="renderEventTable()" placeholder="Max distance km">
+                </div>
+                <div class="event-table-wrap">
+                    <table class="event-table">
+                        <thead><tr><th>Type</th><th>Event</th><th>Severity</th><th>Distance</th><th>Details</th></tr></thead>
+                        <tbody id="eventTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+
+            <!-- PHASE 63–66 INTELLIGENCE SUITE -->
+            <div class="card full">
+                <div class="card-title"><h2>🎛️ Earth Command Center</h2><span class="small" id="commandStatus">LIVE</span></div>
+                <div class="command-grid">
+                    <div class="command-stat"><span>Signals monitored</span><strong id="cmdSignals">0</strong><small>Current live feed</small></div>
+                    <div class="command-stat"><span>High priority</span><strong id="cmdHigh">0</strong><small>Requires attention</small></div>
+                    <div class="command-stat"><span>Nearest signal</span><strong id="cmdNearest">—</strong><small id="cmdNearestMeta">Waiting for data</small></div>
+                    <div class="command-stat"><span>Regional watch</span><strong id="cmdWatch">LOW</strong><small id="cmdWatchMeta">Based on current signals</small></div>
+                </div>
+            </div>
+
+            <div class="card full">
+                <div class="card-title"><h2>🩺 Data Feed Health</h2><span class="small" id="feedHealthStatus">CHECKING</span></div>
+                <div class="health-grid">
+                    <div class="health-item"><span>Weather</span><div id="healthWeather" class="ok">● READY</div></div>
+                    <div class="health-item"><span>Earthquakes</span><div id="healthEarthquakes" class="ok">● READY</div></div>
+                    <div class="health-item"><span>NASA Events</span><div id="healthNASA" class="ok">● READY</div></div>
+                    <div class="health-item"><span>Risk Engine</span><div id="healthRisk" class="ok">● READY</div></div>
+                </div>
+                <div class="command-note">Feed health reflects the dashboard's latest successful data refresh, not an official service-status guarantee.</div>
+            </div>
+
+            <div class="card full">
+                <div class="card-title"><h2>🔥 Signal Hotspots</h2><span class="small" id="hotspotStatus">TOP SIGNALS</span></div>
+                <div id="hotspotList" class="hotspot-list"></div>
+                <div class="command-note">Hotspots are ranked from the live events already loaded into this dashboard using event strength and proximity to the selected location.</div>
+            </div>
+
+            <div class="card full">
+                <div class="card-title"><h2>🔎 Event Detail Inspector</h2><span class="small" id="inspectorStatus">SELECT AN EVENT</span></div>
+                <div class="intel-grid">
+                    <div class="inspector" id="eventInspector">
+                        <div class="inspector-title">No event selected</div>
+                        <div class="inspector-meta">Use the Inspect button in the Event Intelligence Table to view the selected signal here.</div>
+                    </div>
+                    <div class="inspector">
+                        <div class="inspector-title">📍 Location Snapshot</div>
+                        <div class="snapshot-grid">
+                            <div class="snapshot-item"><span>Location</span><strong id="snapLocation">Delhi</strong></div>
+                            <div class="snapshot-item"><span>Coordinates</span><strong id="snapCoords">28.6139, 77.2090</strong></div>
+                            <div class="snapshot-item"><span>Risk</span><strong id="snapRisk">—</strong></div>
+                            <div class="snapshot-item"><span>Events ≤100 km</span><strong id="snap100">0</strong></div>
+                            <div class="snapshot-item"><span>Events ≤500 km</span><strong id="snap500">0</strong></div>
+                            <div class="snapshot-item"><span>Nearest</span><strong id="snapNearest">—</strong></div>
+                        </div>
+                        <div class="inspector-actions"><button class="btn" onclick="exportLocationSnapshot()">⬇ Export Location Snapshot</button></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card full">
+                <div class="card-title"><h2>⏱️ Time-Window Analytics</h2><span class="small" id="timelineStatus">LIVE EVENTS</span></div>
+                <div class="timeline-grid">
+                    <div class="timeline-stat"><span>Last 1 hour</span><strong id="time1h">0</strong></div>
+                    <div class="timeline-stat"><span>Last 6 hours</span><strong id="time6h">0</strong></div>
+                    <div class="timeline-stat"><span>Last 24 hours</span><strong id="time24h">0</strong></div>
+                    <div class="timeline-stat"><span>Older / unknown</span><strong id="timeOlder">0</strong></div>
+                </div>
+                <div class="timeline-bars">
+                    <div class="time-row"><span>1 hour</span><div class="time-track"><div class="time-fill" id="timeBar1h"></div></div><strong id="timeBar1hVal">0</strong></div>
+                    <div class="time-row"><span>6 hours</span><div class="time-track"><div class="time-fill" id="timeBar6h"></div></div><strong id="timeBar6hVal">0</strong></div>
+                    <div class="time-row"><span>24 hours</span><div class="time-track"><div class="time-fill" id="timeBar24h"></div></div><strong id="timeBar24hVal">0</strong></div>
+                </div>
+            </div>
+
+            <div class="card full">
+                <div class="card-title"><h2>🧾 System Audit Log</h2><span class="small" id="auditStatus">WAITING</span></div>
+                <div id="auditLog" class="audit-log"><div class="muted" style="padding:14px">Waiting for the first dashboard refresh...</div></div>
+            </div>
+
+            <!-- PHASE 63–66 INTELLIGENCE SUITE -->
+            <div class="card full">
+                <div class="card-title"><h2>🧠 Situation Brief</h2><span class="small" id="briefStatus">AUTO ANALYSIS</span></div>
+                <div class="brief-panel" id="situationBrief">Building the latest location intelligence summary...</div>
+                <div class="brief-grid">
+                    <div class="brief-item"><span>Earthquake signals</span><strong id="briefEq">0</strong></div>
+                    <div class="brief-item"><span>Natural-event signals</span><strong id="briefNat">0</strong></div>
+                    <div class="brief-item"><span>High-priority signals</span><strong id="briefHigh">0</strong></div>
+                    <div class="brief-item"><span>Risk score</span><strong id="briefRisk">—</strong></div>
+                </div>
+                <div class="inspector-actions"><button class="btn" onclick="exportIntelligenceBrief()">⬇ Export Intelligence Brief</button></div>
+                <div class="command-note">This is a rule-based dashboard summary from the loaded public feeds; it is not an official emergency warning or professional risk assessment.</div>
+            </div>
+
+            <div class="card full">
+                <div class="card-title"><h2>📊 Signal Distribution</h2><span class="small" id="distributionStatus">LIVE</span></div>
+                <div class="distribution-grid">
+                    <div class="distribution-row"><span>Earthquakes</span><div class="distribution-track"><div id="distEq" class="distribution-fill"></div></div><strong id="distEqVal">0</strong></div>
+                    <div class="distribution-row"><span>Natural Events</span><div class="distribution-track"><div id="distNat" class="distribution-fill"></div></div><strong id="distNatVal">0</strong></div>
+                    <div class="distribution-row"><span>High Priority</span><div class="distribution-track"><div id="distHigh" class="distribution-fill"></div></div><strong id="distHighVal">0</strong></div>
+                    <div class="distribution-row"><span>Medium Priority</span><div class="distribution-track"><div id="distMed" class="distribution-fill"></div></div><strong id="distMedVal">0</strong></div>
+                </div>
+            </div>
+
+            <!-- LIVE INTELLIGENCE MAP -->
+            <div class="card full">
+                <div class="card-title">
+                    <h2>🗺️ Live Intelligence Map</h2>
+                    <span class="small" id="mapStatus">LIVE DATA</span>
+                </div>
+
+                <div class="map-filters">
+                    <button class="filter-btn active" id="filterAll" onclick="setMapFilter('all')">All</button>
+                    <button class="filter-btn" id="filterEarthquake" onclick="setMapFilter('earthquake')">Earthquakes</button>
+                    <button class="filter-btn" id="filterNatural" onclick="setMapFilter('natural')">Natural Events</button>
+                </div>
+
+                <div class="map-toolbar">
+                    <div class="map-legend">
+                        <span class="legend-item">
+                            <span class="legend-dot" style="background:#38bdf8;"></span>
+                            Current location
+                        </span>
+                        <span class="legend-item">
+                            <span class="legend-dot" style="background:#f59e0b;"></span>
+                            Earthquake
+                        </span>
+                        <span class="legend-item">
+                            <span class="legend-dot" style="background:#ef4444;"></span>
+                            Natural event
+                        </span>
+                    </div>
+
+                    <button class="btn" onclick="fitMapToSignals()">
+                        🎯 Fit events
+                    </button>
+                </div>
+
+                <div id="intelligenceMap" class="map"></div>
+                <div class="map-card-note">
+                    Live USGS earthquake and NASA EONET markers.
+                </div>
+            </div>
+
+            <!-- NEARBY EVENT INTELLIGENCE -->
+            <div class="card full">
+                <div class="card-title">
+                    <h2>📍 Nearby Event Intelligence</h2>
+                    <span class="small" id="nearbyStatus">WITHIN 500 KM</span>
+                </div>
+                <div class="nearby-grid">
+                    <div>
+                        <div class="small" style="margin-bottom:8px;">Nearest earthquakes</div>
+                        <div id="nearbyEarthquakes" class="nearby-list"></div>
+                    </div>
+                    <div>
+                        <div class="small" style="margin-bottom:8px;">Nearest natural events</div>
+                        <div id="nearbyNatural" class="nearby-list"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LIVE RISK MAP -->
+            <div class="card full">
+                <div class="card-title">
+                    <h2>⚠️ Live Risk Map</h2>
+                    <span class="small" id="riskMapStatus">RISK SIGNALS</span>
+                </div>
+
+                <div id="riskMap" class="map"></div>
+                <div class="risk-summary">
+                    <div class="risk-stat"><span>Risk score</span><strong id="smartRiskScore">—</strong></div>
+                    <div class="risk-stat"><span>Nearby earthquakes</span><strong id="nearbyEqCount">0</strong></div>
+                    <div class="risk-stat"><span>Nearby natural events</span><strong id="nearbyNaturalCount">0</strong></div>
+                </div>
+                <div class="map-card-note">
+                    Prototype risk visualization. Not an official emergency warning.
+                </div>
+            </div>
+
+            <!-- EARTHQUAKES LIST -->
+
+            <div class="card wide">
+
+                <div class="card-title">
+                    <h2>🌎 Nearby Earthquakes</h2>
+                    <span class="small">
+                        500 KM
+                    </span>
+                </div>
+
+                <div
+                    class="event-list"
+                    id="earthquakeList"
+                >
+                    <div class="loading">
+                        Loading...
+                    </div>
+                </div>
+
+            </div>
+
+
+            <!-- NASA EVENTS -->
+
+            <div class="card wide">
+
+                <div class="card-title">
+                    <h2>🌍 NASA Natural Events</h2>
+                    <span class="small">
+                        EONET
+                    </span>
+                </div>
+
+                <div
+                    class="event-list"
+                    id="naturalEventList"
+                >
+                    <div class="loading">
+                        Loading...
+                    </div>
+                </div>
+
+            </div>
+
+
+            <!-- NEWS -->
+
+            <div class="card full">
+
+                <div class="card-title">
+                    <h2>📰 Intelligence News</h2>
+
+                    <span
+                        class="small"
+                        id="newsStatus"
+                    >
+                        GDELT
+                    </span>
+                </div>
+
+                <div
+                    class="news-list"
+                    id="newsList"
+                >
+                    <div class="loading">
+                        Loading news...
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- ================= FOOTER ================= -->
+
+    <footer>
+
+        Satellite Bharat · Final V1.0 · Live Intelligence
+
+        <br>
+
+        Prototype intelligence dashboard.
+        Information is source-backed and should not be
+        treated as an official emergency warning.
+
+    </footer>
+
+</div>
+
+
+
+<!-- =====================================================
+     FINAL V1.0 RELEASE CENTER
+===================================================== -->
+<section class="card" id="operationsCenter">
+  <div class="card-title">
+    <h2>🛠️ Final QA & Operations</h2>
+    <span class="small" id="qaStatus">READY FOR TEST</span>
+  </div>
+  <div class="ops-grid">
+    <div class="ops-stat"><div class="small">Session uptime</div><div class="big" id="opsUptime">00:00:00</div><div class="small">Current browser session</div></div>
+    <div class="ops-stat"><div class="small">Last refresh</div><div class="big" id="opsLastRefresh">—</div><div class="small" id="opsLastLocation">—</div></div>
+    <div class="ops-stat"><div class="small">Loaded signals</div><div class="big" id="opsSignals">0</div><div class="small">Earthquake + NASA events</div></div>
+    <div class="ops-stat"><div class="small">Overall status</div><div class="big" id="opsOverall">READY</div><div class="small">Feed and UI checks</div></div>
+  </div>
+  <div class="ops-table">
+    <div class="ops-row"><span>Weather API</span><span id="qaWeather">NOT CHECKED</span></div>
+    <div class="ops-row"><span>Earthquake API</span><span id="qaEarthquakes">NOT CHECKED</span></div>
+    <div class="ops-row"><span>NASA EONET API</span><span id="qaNASA">NOT CHECKED</span></div>
+    <div class="ops-row"><span>Risk API</span><span id="qaRisk">NOT CHECKED</span></div>
+    <div class="ops-row"><span>Map engine</span><span id="qaMap">READY</span></div>
+  </div>
+  <div class="ops-actions">
+    <button class="btn" onclick="runFinalHealthCheck()">🩺 Run Health Check</button>
+    <button class="btn" onclick="exportOperationsReport()">📋 Export QA Report</button>
+    <button class="btn" onclick="scrollToTopDashboard()">⬆️ Back to Top</button>
+  </div>
+  <div class="final-note">Final QA checks are dashboard diagnostics only. Public feed availability can change independently of the application.</div>
+</section>
+
+<!-- =====================================================
+     FINAL V1.0 RELEASE CENTER
+===================================================== -->
+<section class="card" id="finalReleaseCenter">
+  <div class="card-title">
+    <h2>🚀 Satellite Bharat — Final Release Center</h2>
+    <span class="small" id="releaseStatus">VERSION 1.0 READY</span>
+  </div>
+  <div class="release-grid">
+    <div class="release-stat"><div class="small">Platform</div><div class="big">V1.0</div><div class="small">Global Earth Intelligence</div></div>
+    <div class="release-stat"><div class="small">Location</div><div class="big" id="releaseLocation">Delhi</div><div class="small" id="releaseCoords">28.6139, 77.2090</div></div>
+    <div class="release-stat"><div class="small">Risk</div><div class="big" id="releaseRisk">—</div><div class="small" id="releaseRiskMeta">Awaiting feed</div></div>
+    <div class="release-stat"><div class="small">Signals</div><div class="big" id="releaseSignals">0</div><div class="small" id="releaseSignalsMeta">Loaded events</div></div>
+  </div>
+  <div class="readiness">
+    <div class="readiness-row"><span>Weather feed</span><span id="releaseWeather">Checking…</span></div>
+    <div class="readiness-row"><span>Earthquake feed</span><span id="releaseEarthquakes">Checking…</span></div>
+    <div class="readiness-row"><span>NASA / Natural Events</span><span id="releaseNASA">Checking…</span></div>
+    <div class="readiness-row"><span>Risk analytics</span><span id="releaseRiskFeed">Checking…</span></div>
+    <div class="readiness-row"><span>Map intelligence</span><span id="releaseMap">READY</span></div>
+    <div class="readiness-row"><span>Exports / Reports</span><span id="releaseExports">READY</span></div>
+  </div>
+  <div class="release-actions">
+    <button class="btn" onclick="exportFinalSnapshot()">📦 Export Final Snapshot</button>
+    <button class="btn" onclick="window.print()">🖨️ Print Dashboard</button>
+    <button class="btn" onclick="scrollToTopDashboard()">⬆️ Back to Top</button>
+  </div>
+  <div class="final-note">
+    <b>Satellite Bharat</b> — “धरती की हर हलचल, एक जगह।” This dashboard combines loaded public data feeds and rule-based analytics. It is an information dashboard, not an official emergency-warning system.
+  </div>
+</section>
+
+<script>
+
+    /* =====================================================
+       CONFIG
+    ===================================================== */
+
+    let currentLat = 28.6139;
+    let currentLon = 77.2090;
+    let currentLocation = "Delhi";
+
+    let satelliteUrl =
+        "https://worldview.earthdata.nasa.gov/";
+
+
+    /* =====================================================
+       HELPERS
+    ===================================================== */
+
+    function setStatus(text, online = true) {
+
+        const status =
+            document.getElementById("systemStatus");
+
+        status.textContent = text;
+
+        const dot =
+            document.querySelector(".status-dot");
+
+        if (online) {
+
+            dot.style.background = "#22c55e";
+
+        } else {
+
+            dot.style.background = "#ef4444";
+        }
+    }
+
+
+    function updateTime() {
+
+        document.getElementById(
+            "lastUpdate"
+        ).textContent =
+            new Date().toLocaleString();
+
+    }
+
+
+    async function getJSON(url) {
+
+        const response =
+            await fetch(url);
+
+        if (!response.ok) {
+
+            throw new Error(
+                "HTTP " + response.status
+            );
+        }
+
+        return await response.json();
+
+    }
+
+
+    function escapeHTML(value) {
+
+        if (value === null ||
+            value === undefined) {
+
+            return "";
+        }
+
+        return String(value)
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
+
+    }
+
+
+    function formatDate(value) {
+
+        if (!value) {
+            return "Unknown date";
+        }
+
+        try {
+
+            return new Date(value)
+                .toLocaleString();
+
+        } catch {
+
+            return value;
+        }
+    }
+
+
+    /* =====================================================
+       WEATHER
+    ===================================================== */
+
+    async function loadWeather() {
+
+        const box =
+            document.getElementById("weather");
+
+        try {
+
+            const data =
+                await getJSON(
+                    `/api/weather?lat=${currentLat}&lon=${currentLon}`
+                );
+
+            const current =
+                data.current || {};
+
+            const temp =
+                current.temperature_2m;
+
+            const humidity =
+                current.relative_humidity_2m;
+
+            const wind =
+                current.wind_speed_10m;
+
+            const precipitation =
+                current.precipitation;
+
+            box.innerHTML = `
+
+                <div class="weather-temp">
+                    ${temp ?? "—"}°
+                </div>
+
+                <div class="muted">
+                    Current temperature
+                </div>
+
+                <div class="weather-grid">
+
+                    <div class="weather-item">
+                        <span>Humidity</span>
+                        <strong>
+                            ${humidity ?? "—"}%
+                        </strong>
+                    </div>
+
+                    <div class="weather-item">
+                        <span>Wind</span>
+                        <strong>
+                            ${wind ?? "—"} km/h
+                        </strong>
+                    </div>
+
+                    <div class="weather-item">
+                        <span>Rain</span>
+                        <strong>
+                            ${precipitation ?? "—"} mm
+                        </strong>
+                    </div>
+
+                </div>
+            `;
+
+        } catch (error) {
+
+            box.innerHTML = `
+                <div class="error">
+                    Weather unavailable
+                </div>
+            `;
+
+            console.error(error);
+        }
+    }
+
+
+    /* =====================================================
+       EARTHQUAKES
+    ===================================================== */
+
+    async function loadEarthquakes() {
+
+        const list =
+            document.getElementById(
+                "earthquakeList"
+            );
+
+        try {
+
+            const data =
+                await getJSON(
+                    "/api/earthquakes"
+                );
+
+            const events =
+                data.events || [];
+
+            lastEarthquakes = events;
+
+            document.getElementById(
+                "earthquakeCount"
+            ).textContent =
+                data.count ?? events.length;
+
+
+            if (!events.length) {
+
+                list.innerHTML = `
+                    <div class="muted">
+                        No earthquake events found.
+                    </div>
+                `;
+
+                return;
+            }
+
+
+            let largest =
+                events.reduce(
+                    (max, item) => {
+
+                        const mag =
+                            Number(item.mag || 0);
+
+                        return mag >
+                            Number(max.mag || 0)
+                            ? item
+                            : max;
+
+                    },
+                    events[0]
+                );
+
+
+            document.getElementById(
+                "largestEarthquake"
+            ).textContent =
+                `Largest: M${Number(
+                    largest.mag || 0
+                ).toFixed(1)} — ${
+                    largest.place || "Unknown"
+                }`;
+
+
+            list.innerHTML =
+                events
+                    .slice(0, 30)
+                    .map(event => `
+
+                        <div class="event">
+
+                            <div class="event-icon">
+                                🌎
+                            </div>
+
+                            <div class="event-body">
+
+                                <div class="event-title">
+                                    ${escapeHTML(
+                                        event.place ||
+                                        "Unknown location"
+                                    )}
+                                </div>
+
+                                <div class="event-meta">
+                                    Magnitude:
+                                    ${event.mag ?? "—"}
+                                    · Depth:
+                                    ${event.depth ?? "—"} km
+                                    ·
+                                    ${formatDate(
+                                        event.time
+                                    )}
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    `)
+                    .join("");
+
+        } catch (error) {
+
+            list.innerHTML = `
+                <div class="error">
+                    Earthquake data unavailable.
+                </div>
+            `;
+
+            console.error(error);
+        }
+    }
+
+
+    /* =====================================================
+       NASA EONET
+    ===================================================== */
+
+    async function loadEonet() {
+
+        const list =
+            document.getElementById(
+                "naturalEventList"
+            );
+
+        try {
+
+            const data =
+                await getJSON(
+                    "/api/eonet?limit=100"
+                );
+
+            const events =
+                data.events || [];
+
+            lastNaturalEvents = events;
+
+            document.getElementById(
+                "eventCount"
+            ).textContent =
+                data.count ?? events.length;
+
+
+            if (!events.length) {
+
+                list.innerHTML = `
+                    <div class="muted">
+                        No open NASA events found.
+                    </div>
+                `;
+
+                return;
+            }
+
+
+            list.innerHTML =
+                events
+                    .slice(0, 30)
+                    .map(event => `
+
+                        <div class="event">
+
+                            <div class="event-icon">
+                                🌋
+                            </div>
+
+                            <div class="event-body">
+
+                                <div class="event-title">
+                                    ${escapeHTML(
+                                        event.title ||
+                                        "NASA Natural Event"
+                                    )}
+                                </div>
+
+                                <div class="event-meta">
+                                    ${
+                                        escapeHTML(
+                                            event.date ||
+                                            "Unknown date"
+                                        )
+                                    }
+                                    · NASA EONET
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    `)
+                    .join("");
+
+        } catch (error) {
+
+            list.innerHTML = `
+                <div class="error">
+                    NASA EONET unavailable.
+                </div>
+            `;
+
+            console.error(error);
+        }
+    }
+
+
+    /* =====================================================
+       RISK
+    ===================================================== */
+
+    async function loadRisk() {
+
+        try {
+
+            const data =
+                await getJSON(
+                    `/api/risk?lat=${currentLat}&lon=${currentLon}`
+                );
+
+            const score =
+                Number(data.score || 0);
+
+            currentRiskScore = score;
+            currentRiskLevel = data.level || "UNKNOWN";
+
+            document.getElementById(
+                "riskScore"
+            ).textContent =
+                score;
+
+
+            document.getElementById(
+                "riskLevel"
+            ).textContent =
+                data.level || "UNKNOWN";
+
+
+            document.getElementById(
+                "riskCircle"
+            ).style.setProperty(
+                "--risk",
+                `${score}%`
+            );
+
+        } catch (error) {
+
+            document.getElementById(
+                "riskScore"
+            ).textContent =
+                "—";
+
+            document.getElementById(
+                "riskLevel"
+            ).textContent =
+                "UNAVAILABLE";
+
+            console.error(error);
+        }
+    }
+
+
+    /* =====================================================
+       ALERT CENTER
+    ===================================================== */
+
+    async function loadAlerts() {
+
+        const box =
+            document.getElementById(
+                "alertCenter"
+            );
+
+        try {
+
+            const data =
+                await getJSON(
+                    `/api/alert-center?lat=${currentLat}&lon=${currentLon}`
+                );
+
+            const risk =
+                data.risk || {};
+
+            const reasons =
+                risk.reasons || [];
+
+            box.innerHTML = `
+
+                <div class="alert-level">
+                    ${escapeHTML(
+                        risk.level || "UNKNOWN"
+                    )}
+                </div>
+
+                <div class="muted">
+                    Risk score:
+                    ${risk.score ?? "—"}
+                    · Signals:
+                    ${risk.signals ?? "—"}
+                </div>
+
+                <div class="alert-reasons">
+
+                    ${
+                        reasons.length
+                        ? reasons.map(reason => `
+                            <div class="reason">
+                                ⚠️
+                                ${escapeHTML(reason)}
+                            </div>
+                        `).join("")
+                        : `
+                            <div class="reason">
+                                No high-priority
+                                reasons detected.
+                            </div>
+                        `
+                    }
+
+                </div>
+
+            `;
+
+        } catch (error) {
+
+            box.innerHTML = `
+                <div class="error">
+                    Alert center unavailable.
+                </div>
+            `;
+
+            console.error(error);
+        }
+    }
+
+
+    /* =====================================================
+       CORRELATION
+    ===================================================== */
+
+    async function loadCorrelation() {
+
+        try {
+
+            await getJSON(
+                `/api/correlate?lat=${currentLat}&lon=${currentLon}&radius_km=500`
+            );
+
+        } catch (error) {
+
+            console.error(
+                "Correlation error:",
+                error
+            );
+        }
+    }
+
+
+    /* =====================================================
+       NEWS
+    ===================================================== */
+
+    async function loadNews() {
+
+        const list =
+            document.getElementById(
+                "newsList"
+            );
+
+        try {
+
+            const query =
+                encodeURIComponent(
+                    currentLocation
+                );
+
+            const data =
+                await getJSON(
+                    `/api/news?q=${query}`
+                );
+
+            const articles =
+                data.articles || [];
+
+
+            document.getElementById(
+                "newsStatus"
+            ).textContent =
+                `${articles.length} RESULTS`;
+
+
+            if (!articles.length) {
+
+                list.innerHTML = `
+                    <div class="muted">
+                        No news results found.
+                    </div>
+                `;
+
+                return;
+            }
+
+
+            list.innerHTML =
+                articles
+                    .slice(0, 30)
+                    .map(article => `
+
+                        <div class="news-item">
+
+                            <a
+                                href="${escapeHTML(
+                                    article.url || "#"
+                                )}"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                ${escapeHTML(
+                                    article.title ||
+                                    "Untitled article"
+                                )}
+                            </a>
+
+                            <div class="news-meta">
+
+                                ${
+                                    escapeHTML(
+                                        article.domain ||
+                                        "Unknown source"
+                                    )
+                                }
+
+                                ·
+
+                                ${
+                                    escapeHTML(
+                                        article.date ||
+                                        ""
+                                    )
+                                }
+
+                            </div>
+
+                        </div>
+
+                    `)
+                    .join("");
+
+        } catch (error) {
+
+            list.innerHTML = `
+                <div class="error">
+                    News unavailable.
+                </div>
+            `;
+
+            console.error(error);
+        }
+    }
+
+
+    /* =====================================================
+       SATELLITE
+    ===================================================== */
+
+    async function loadSatellite() {
+
+        try {
+
+            const data =
+                await getJSON(
+                    "/api/satellite"
+                );
+
+            satelliteUrl =
+                data.map_url ||
+                "https://worldview.earthdata.nasa.gov/";
+
+            document.getElementById(
+                "satelliteNote"
+            ).textContent =
+                data.note ||
+                "NASA satellite imagery available.";
+
+        } catch (error) {
+
+            console.error(error);
+        }
+    }
+
+
+    function openSatellite() {
+
+        window.open(
+            satelliteUrl,
+            "_blank",
+            "noopener,noreferrer"
+        );
+    }
+
+
+    /* =====================================================
+       LOCATION SEARCH — PHASE 39–42
+    ===================================================== */
+
+    let map = null;
+    let riskMap = null;
+    let mapLayers = [];
+    let riskMapLayers = [];
+    let lastEarthquakes = [];
+    let lastNaturalEvents = [];
+    let locationResultsCache = [];
+    let locationSearchBusy = false;
+
+    let autoRefreshEnabled = true;
+    let refreshCountdown = 60;
+    let refreshTimer = null;
+
+    let mapFilter = "all";
+    let currentRiskScore = 0;
+    let currentRiskLevel = "UNKNOWN";
+    let nearbyEarthquakes = [];
+    let nearbyNaturalEvents = [];
+    let analysisRadius = 500;
+    let monitorLastRefresh = null;
+
+    function setSearchStatus(text, isError = false) {
+        const el = document.getElementById("searchStatus");
+        el.textContent = text || "";
+        el.style.color = isError ? "#fca5a5" : "#7990aa";
+    }
+
+    function clearLocationResults() {
+        document.getElementById("locationResults").innerHTML = "";
+        locationResultsCache = [];
+    }
+
+    function applyLocation(result) {
+        if (!result) return;
+
+        currentLocation = result.name || currentLocation;
+        currentLat = Number(result.latitude);
+        currentLon = Number(result.longitude);
+
+        document.getElementById("locationInput").value = currentLocation;
+        document.getElementById("locationName").textContent = currentLocation;
+        document.getElementById("latitude").textContent = currentLat.toFixed(4);
+        document.getElementById("longitude").textContent = currentLon.toFixed(4);
+
+        clearLocationResults();
+        setSearchStatus(
+            `${currentLocation} · ${currentLat.toFixed(4)}, ${currentLon.toFixed(4)}`
+        );
+
+        loadAll();
+    }
+
+    function chooseLocation(index) {
+        const result = locationResultsCache[index];
+        if (result) applyLocation(result);
+    }
+
+    async function searchLocation() {
+        if (locationSearchBusy) return;
+
+        const query =
+            document.getElementById("locationInput").value.trim();
+
+        if (!query) {
+            setSearchStatus("Please enter a city or place.", true);
+            return;
+        }
+
+        locationSearchBusy = true;
+        clearLocationResults();
+        setSearchStatus("Searching location...");
+
+        try {
+            const data = await getJSON(
+                `/api/location-search?q=${encodeURIComponent(query)}`
+            );
+
+            const results = data.results || [];
+
+            if (!results.length) {
+                setSearchStatus(`Location not found: ${query}`, true);
+                return;
+            }
+
+            locationResultsCache = results.slice(0, 5);
+            applyLocation(locationResultsCache[0]);
+
+            if (locationResultsCache.length > 1) {
+                const box = document.getElementById("locationResults");
+
+                box.innerHTML = locationResultsCache.map((r, index) => `
+                    <div
+                        class="location-option"
+                        onclick="chooseLocation(${index})"
+                    >
+                        ${escapeHTML(r.name || "Unknown")}
+                        ${r.admin1 ? " · " + escapeHTML(r.admin1) : ""}
+                        ${r.country ? " · " + escapeHTML(r.country) : ""}
+                        — ${Number(r.latitude).toFixed(4)}, ${Number(r.longitude).toFixed(4)}
+                    </div>
+                `).join("");
+            }
+        } catch (error) {
+            console.error(error);
+            setSearchStatus("Location search unavailable.", true);
+        } finally {
+            locationSearchBusy = false;
+        }
+    }
+
+    /* =====================================================
+       LIVE MAPS
+    ===================================================== */
+
+    function initMaps() {
+        if (typeof L === "undefined") {
+            document.getElementById("mapStatus").textContent =
+                "MAP LIBRARY UNAVAILABLE";
+            document.getElementById("riskMapStatus").textContent =
+                "MAP LIBRARY UNAVAILABLE";
+            return;
+        }
+
+        if (!map) {
+            map = L.map("intelligenceMap").setView(
+                [currentLat, currentLon], 5
+            );
+
+            L.tileLayer(
+                "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                {
+                    maxZoom: 18,
+                    attribution: "&copy; OpenStreetMap contributors"
+                }
+            ).addTo(map);
+        }
+
+        if (!riskMap) {
+            riskMap = L.map("riskMap").setView(
+                [currentLat, currentLon], 5
+            );
+
+            L.tileLayer(
+                "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                {
+                    maxZoom: 18,
+                    attribution: "&copy; OpenStreetMap contributors"
+                }
+            ).addTo(riskMap);
+        }
+
+        setTimeout(() => {
+            map.invalidateSize();
+            riskMap.invalidateSize();
+        }, 150);
+    }
+
+    function clearMapLayers() {
+        mapLayers.forEach(layer => {
+            if (map) map.removeLayer(layer);
+        });
+        mapLayers = [];
+
+        riskMapLayers.forEach(layer => {
+            if (riskMap) riskMap.removeLayer(layer);
+        });
+        riskMapLayers = [];
+    }
+
+    function markerIcon(background) {
+        return L.divIcon({
+            className: "",
+            html: `<div style="
+                width:14px;height:14px;border-radius:50%;
+                background:${background};
+                border:2px solid white;
+                box-shadow:0 0 0 3px rgba(0,0,0,.18);
+            "></div>`,
+            iconSize: [14, 14],
+            iconAnchor: [7, 7]
+        });
+    }
+
+    function haversineKm(lat1, lon1, lat2, lon2) {
+        const R = 6371;
+        const dLat = (lat2-lat1) * Math.PI/180;
+        const dLon = (lon2-lon1) * Math.PI/180;
+        const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2)**2;
+        return 2 * R * Math.asin(Math.sqrt(a));
+    }
+
+    function setMapFilter(filter) {
+        mapFilter = filter;
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        const id = filter === 'earthquake' ? 'filterEarthquake' : filter === 'natural' ? 'filterNatural' : 'filterAll';
+        document.getElementById(id).classList.add('active');
+        updateMaps();
+    }
+
+
+    function earthquakeSeverity(mag,distance){if(mag>=6||(mag>=5&&distance<=500))return "high";if(mag>=4.5||(mag>=4&&distance<=250))return "medium";return "low";}
+    function naturalSeverity(distance){if(distance<=100)return "high";if(distance<=500)return "medium";return "low";}
+    function buildEventRecords(){const r=[];nearbyEarthquakes.forEach(e=>r.push({type:"earthquake",title:`M${Number(e.mag||0).toFixed(1)} · ${e.place||"Unknown location"}`,severity:earthquakeSeverity(Number(e.mag||0),e.distanceKm),distance:e.distanceKm,details:`Depth ${e.depth??"—"} km`,lat:Number(e.lat),lon:Number(e.lon),timestamp:e.time?new Date(e.time).toISOString():null,source:"USGS",magnitude:Number(e.mag||0)}));nearbyNaturalEvents.forEach(e=>{const c=Array.isArray(e.coordinates)?e.coordinates:null;r.push({type:"natural",title:e.title||"NASA Natural Event",severity:naturalSeverity(e.distanceKm),distance:e.distanceKm,details:e.date||"Unknown date",lat:c?Number(c[1]):NaN,lon:c?Number(c[0]):NaN,timestamp:e.date||null,source:"NASA EONET",magnitude:null});});return r.sort((a,b)=>a.distance-b.distance);}
+    function renderEventTable(){
+        const body=document.getElementById("eventTableBody");
+        if(!body)return;
+        const type=document.getElementById("eventTypeFilter").value;
+        const sev=document.getElementById("eventSeverityFilter").value;
+        const max=Number(document.getElementById("eventDistanceFilter").value||500);
+        const rows=buildEventRecords().filter(x=>(type==="all"||x.type===type)&&(sev==="all"||x.severity===sev)&&x.distance<=max);
+        body.innerHTML=rows.slice(0,100).map((x,i)=>`<tr><td>${x.type==="earthquake"?"Earthquake":"Natural"}</td><td>${escapeHTML(x.title)}</td><td class="severity-${x.severity}">${x.severity.toUpperCase()}</td><td>${x.distance.toFixed(0)} km</td><td>${escapeHTML(x.details)} <button class="inspect-btn" onclick="selectEventRecord(${i})">Inspect</button></td></tr>`).join("")||'<tr><td colspan="5" class="muted">No matching events.</td></tr>';
+        document.getElementById('eventTableStatus').textContent=`${rows.length} MATCHING EVENTS`;
+        window.currentDisplayedEvents=rows.slice(0,100);
+    }
+
+    function selectEventRecord(index){
+        const x=(window.currentDisplayedEvents||[])[index];
+        if(!x)return;
+        const box=document.getElementById('eventInspector');
+        if(box)box.innerHTML=`<div class="inspector-title">${escapeHTML(x.title)}</div><div class="inspector-meta"><b>Type:</b> ${x.type.toUpperCase()}<br><b>Severity:</b> ${x.severity.toUpperCase()}<br><b>Distance:</b> ${x.distance.toFixed(1)} km from ${escapeHTML(currentLocation)}<br><b>Details:</b> ${escapeHTML(x.details)}<br><b>Observed:</b> ${escapeHTML(x.timestamp||'Timestamp unavailable')}<br><b>Source:</b> ${escapeHTML(x.source||'Unknown')}</div><div class="inspector-actions"><button class="btn" onclick="focusSelectedEvent()">🎯 Focus on Map</button></div>`;
+        const st=document.getElementById('inspectorStatus'); if(st)st.textContent='EVENT SELECTED';
+        window.selectedEventRecord=x;
+    }
+
+    function focusSelectedEvent(){
+        const x=window.selectedEventRecord;
+        if(!x||!map)return;
+        if(Number.isFinite(x.lat)&&Number.isFinite(x.lon)) map.setView([x.lat,x.lon],7);
+        else if(Array.isArray(x.coordinates)) map.setView([Number(x.coordinates[1]),Number(x.coordinates[0])],7);
+    }
+
+    function updateAdvancedAnalytics(){const r=buildEventRecords(),within=k=>r.filter(x=>x.distance<=k).length;document.getElementById("ops100").textContent=within(100);document.getElementById("ops250").textContent=within(250);document.getElementById("ops500").textContent=within(500);const eq=nearbyEarthquakes.filter(x=>x.distanceKm<=analysisRadius),strong=eq.reduce((a,b)=>Number(b.mag||0)>Number(a?.mag||0)?b:a,null);document.getElementById("opsStrongest").textContent=strong?`M${Number(strong.mag||0).toFixed(1)}`:"—";const c={eq:r.filter(x=>x.type==="earthquake").length,nat:r.filter(x=>x.type==="natural").length,high:r.filter(x=>x.severity==="high").length,med:r.filter(x=>x.severity==="medium").length},mx=Math.max(...Object.values(c),1);[["eqBar",c.eq],["natBar",c.nat],["highBar",c.high],["medBar",c.med]].forEach(([id,v])=>{document.getElementById(id).style.width=`${Math.round(v/mx*100)}%`;document.getElementById(id+"Value").textContent=v;});const n=r[0];document.getElementById("nearestSignal").innerHTML=n?`<strong>${escapeHTML(n.title)}</strong><br>${n.distance.toFixed(0)} km from ${escapeHTML(currentLocation)}<br>Severity: ${n.severity.toUpperCase()} · ${escapeHTML(n.details)}`:"No nearby signals found.";const b=document.getElementById("watchBadge"),w=currentRiskScore>=55||c.high>0?"high":currentRiskScore>=25||c.med>0?"medium":"low";b.className=`watch-badge watch-${w}`;b.textContent=`${w.toUpperCase()} WATCH`;document.getElementById("analyticsStatus").textContent=`RADIUS ${analysisRadius} KM · ${r.length} SIGNALS`;}
+    function setAnalysisRadius(km){analysisRadius=km;const i=document.getElementById("eventDistanceFilter");if(i)i.value=km;updateAdvancedAnalytics();renderEventTable();}
+    function exportSituationSnapshot(){const data={generated_at:new Date().toISOString(),location:{name:currentLocation,latitude:currentLat,longitude:currentLon},risk:{score:currentRiskScore,level:currentRiskLevel},analysis_radius_km:analysisRadius,events:buildEventRecords().slice(0,200)};const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`satellite-bharat-${currentLocation.replace(/[^a-z0-9]+/gi,"-")}-snapshot.json`;a.click();URL.revokeObjectURL(a.href);}
+    function updateMonitorClock(){const now=new Date();monitorLastRefresh=now;const l=document.getElementById("monitorLastRefresh");if(l)l.textContent=now.toLocaleTimeString();const loc=document.getElementById("monitorLocation");if(loc)loc.textContent=currentLocation;}
+    function startMonitoringClock(){if(refreshTimer)clearInterval(refreshTimer);refreshCountdown=60;refreshTimer=setInterval(()=>{if(!autoRefreshEnabled)return;refreshCountdown=Math.max(0,refreshCountdown-1);const c=document.getElementById("monitorCountdown");if(c)c.textContent=refreshCountdown+"s";if(refreshCountdown===0){refreshCountdown=60;loadAll();}},1000);}
+    function toggleAutoRefresh(){autoRefreshEnabled=!autoRefreshEnabled;const b=document.getElementById("autoRefreshButton"),s=document.getElementById("monitorStatus");if(b)b.textContent=autoRefreshEnabled?"⏸ Pause Auto Refresh":"▶ Resume Auto Refresh";if(s)s.textContent=autoRefreshEnabled?"AUTO LIVE":"PAUSED";}
+    function exportEventReport(){const rows=buildEventRecords().map(x=>[x.type,x.title,x.severity,x.distance.toFixed(1),x.details]);const csv=["Type,Event,Severity,Distance_km,Details",...rows.map(row=>row.map(v=>`"${String(v).replaceAll('"','""')}"`).join(","))].join("\n"),blob=new Blob([csv],{type:"text/csv"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="satellite-bharat-event-report.csv";a.click();URL.revokeObjectURL(a.href);}
+
+    function updateNearby() {
+        nearbyEarthquakes = lastEarthquakes.map(eq => {
+            const lat=Number(eq.lat), lon=Number(eq.lon);
+            return {...eq, distanceKm: Number.isFinite(lat)&&Number.isFinite(lon) ? haversineKm(currentLat,currentLon,lat,lon) : Infinity};
+        }).filter(x=>Number.isFinite(x.distanceKm)).sort((a,b)=>a.distanceKm-b.distanceKm);
+
+        nearbyNaturalEvents = lastNaturalEvents.map(ev => {
+            const c=ev.coordinates; const lon=Array.isArray(c)?Number(c[0]):NaN; const lat=Array.isArray(c)?Number(c[1]):NaN;
+            return {...ev, distanceKm: Number.isFinite(lat)&&Number.isFinite(lon) ? haversineKm(currentLat,currentLon,lat,lon) : Infinity};
+        }).filter(x=>Number.isFinite(x.distanceKm)).sort((a,b)=>a.distanceKm-b.distanceKm);
+
+        const eq500=nearbyEarthquakes.filter(x=>x.distanceKm<=500);
+        const nat500=nearbyNaturalEvents.filter(x=>x.distanceKm<=500);
+        document.getElementById('nearbyEqCount').textContent=eq500.length;
+        document.getElementById('nearbyNaturalCount').textContent=nat500.length;
+        document.getElementById('nearbyStatus').textContent=`${eq500.length + nat500.length} EVENTS WITHIN 500 KM`;
+        document.getElementById('smartRiskScore').textContent=`${currentRiskScore} · ${currentRiskLevel}`;
+
+        const renderEq = nearbyEarthquakes.slice(0,8).map(eq=>`<div class="nearby-item"><div class="nearby-title">M${Number(eq.mag||0).toFixed(1)} · ${escapeHTML(eq.place||'Unknown location')}</div><div class="nearby-meta">${eq.distanceKm.toFixed(0)} km away · ${eq.depth??'—'} km depth</div></div>`).join('');
+        const renderNat = nearbyNaturalEvents.slice(0,8).map(ev=>`<div class="nearby-item"><div class="nearby-title">${escapeHTML(ev.title||'NASA Natural Event')}</div><div class="nearby-meta">${ev.distanceKm.toFixed(0)} km away · ${escapeHTML(ev.date||'Unknown date')}</div></div>`).join('');
+        document.getElementById('nearbyEarthquakes').innerHTML=renderEq||'<div class="muted">No nearby earthquakes found.</div>';
+        document.getElementById('nearbyNatural').innerHTML=renderNat||'<div class="muted">No nearby natural events found.</div>';
+        updateAdvancedAnalytics();
+        renderEventTable();
+    }
+
+    function updateMaps() {
+        if (!map || !riskMap || typeof L === 'undefined') return;
+        clearMapLayers();
+        const currentMarker=L.marker([currentLat,currentLon],{icon:markerIcon('#38bdf8')}).bindPopup(`<strong>${escapeHTML(currentLocation)}</strong><br>${currentLat.toFixed(4)}, ${currentLon.toFixed(4)}`);
+        currentMarker.addTo(map); mapLayers.push(currentMarker);
+        const riskCurrent=L.marker([currentLat,currentLon],{icon:markerIcon('#38bdf8')}).bindPopup(`<strong>Risk center</strong><br>${escapeHTML(currentLocation)}<br>Score: ${currentRiskScore} · ${escapeHTML(currentRiskLevel)}`);
+        riskCurrent.addTo(riskMap); riskMapLayers.push(riskCurrent);
+        const radius= Math.max(50, Math.min(500, 50 + currentRiskScore*4));
+        const riskCircle=L.circle([currentLat,currentLon],{radius:radius*1000,weight:1,fillOpacity:.06,color:'#ef4444'}).bindPopup(`Risk influence radius: ${radius} km`);
+        riskCircle.addTo(riskMap); riskMapLayers.push(riskCircle);
+
+        if (mapFilter !== 'natural') lastEarthquakes.slice(0,150).forEach(eq=>{
+            const lat=Number(eq.lat),lon=Number(eq.lon); if(!Number.isFinite(lat)||!Number.isFinite(lon))return;
+            const mag=Number(eq.mag||0);
+            const m=L.circleMarker([lat,lon],{radius:Math.max(4,Math.min(12,3+mag*1.4)),weight:1,opacity:.9,fillOpacity:.75,color:'#f59e0b',fillColor:'#f59e0b'}).bindPopup(`<strong>Earthquake</strong><br>Magnitude: M${mag.toFixed(1)}<br>${escapeHTML(eq.place||'Unknown location')}<br>Distance: ${haversineKm(currentLat,currentLon,lat,lon).toFixed(0)} km`);
+            m.addTo(map);mapLayers.push(m);
+            const r=L.circleMarker([lat,lon],{radius:Math.max(4,Math.min(14,4+mag*1.5)),weight:1,opacity:.9,fillOpacity:.45,color:mag>=5?'#ef4444':'#f59e0b',fillColor:mag>=5?'#ef4444':'#f59e0b'});
+            r.bindPopup(`<strong>Risk signal — Earthquake</strong><br>M${mag.toFixed(1)} · ${haversineKm(currentLat,currentLon,lat,lon).toFixed(0)} km away`);r.addTo(riskMap);riskMapLayers.push(r);
+        });
+        if (mapFilter !== 'earthquake') lastNaturalEvents.slice(0,150).forEach(event=>{
+            const c=event.coordinates;if(!Array.isArray(c)||c.length<2)return;const lon=Number(c[0]),lat=Number(c[1]);if(!Number.isFinite(lat)||!Number.isFinite(lon))return;
+            const m=L.circleMarker([lat,lon],{radius:6,weight:1,opacity:.9,fillOpacity:.72,color:'#ef4444',fillColor:'#ef4444'}).bindPopup(`<strong>NASA Natural Event</strong><br>${escapeHTML(event.title||'Natural event')}<br>Distance: ${haversineKm(currentLat,currentLon,lat,lon).toFixed(0)} km`);m.addTo(map);mapLayers.push(m);
+            const r=L.circleMarker([lat,lon],{radius:7,weight:1,opacity:.9,fillOpacity:.42,color:'#ef4444',fillColor:'#ef4444'}).bindPopup(`<strong>Risk signal — NASA event</strong><br>${escapeHTML(event.title||'Natural event')}`);r.addTo(riskMap);riskMapLayers.push(r);
+        });
+        map.setView([currentLat,currentLon],5);riskMap.setView([currentLat,currentLon],5);
+        document.getElementById('mapStatus').textContent=`${lastEarthquakes.length} EQ · ${lastNaturalEvents.length} NASA · ${mapFilter.toUpperCase()}`;
+        document.getElementById('riskMapStatus').textContent=`${currentRiskLevel} · SCORE ${currentRiskScore}`;
+        updateNearby();
+    }
+
+    function fitMapToSignals() {
+        if (!map || typeof L === "undefined") return;
+
+        const points = [[currentLat, currentLon]];
+
+        lastEarthquakes.slice(0, 100).forEach(eq => {
+            const lat = Number(eq.lat);
+            const lon = Number(eq.lon);
+            if (Number.isFinite(lat) && Number.isFinite(lon)) {
+                points.push([lat, lon]);
+            }
+        });
+
+        lastNaturalEvents.slice(0, 100).forEach(event => {
+            const c = event.coordinates;
+            if (Array.isArray(c) && c.length >= 2) {
+                const lon = Number(c[0]);
+                const lat = Number(c[1]);
+                if (Number.isFinite(lat) && Number.isFinite(lon)) {
+                    points.push([lat, lon]);
+                }
+            }
+        });
+
+        if (points.length === 1) {
+            map.setView([currentLat, currentLon], 8);
+            return;
+        }
+
+        map.fitBounds(L.latLngBounds(points), {
+            padding: [30, 30],
+            maxZoom: 8
+        });
+    }
+
+    /* =====================================================
+       PHASE 63–66 INTELLIGENCE SUITE
+    ===================================================== */
+
+    function updateCommandCenter(){
+        const records=buildEventRecords();
+        const high=records.filter(x=>x.severity==='high');
+        const nearest=records[0];
+        const watch=currentRiskScore>=55||high.length>0?'HIGH':(currentRiskScore>=25||records.some(x=>x.severity==='medium')?'MEDIUM':'LOW');
+        const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+        set('cmdSignals',records.length);
+        set('cmdHigh',high.length);
+        set('cmdNearest',nearest?nearest.distance.toFixed(0)+' km':'—');
+        set('cmdNearestMeta',nearest?nearest.type.toUpperCase()+' · '+nearest.severity.toUpperCase():'Waiting for data');
+        set('cmdWatch',watch);
+        set('cmdWatchMeta',`Risk ${currentRiskScore} · ${currentRiskLevel}`);
+        set('commandStatus',`${currentLocation.toUpperCase()} · LIVE`);
+        set('hotspotStatus',`${Math.min(records.length,8)} TOP SIGNALS`);
+
+        const list=document.getElementById('hotspotList');
+        if(list){
+            list.innerHTML=records.slice(0,8).map((x,i)=>{
+                const score=Math.max(1,Math.round((x.severity==='high'?100:x.severity==='medium'?60:25)*100/(100+x.distance/10)));
+                return `<div class="hotspot"><div class="hotspot-rank">#${i+1}</div><div><div class="hotspot-title">${escapeHTML(x.title)}</div><div class="hotspot-meta">${x.type.toUpperCase()} · ${x.distance.toFixed(0)} km · ${escapeHTML(x.details)}</div></div><div class="hotspot-score">${score}</div></div>`;
+            }).join('')||'<div class="muted">No live event signals available.</div>';
+        }
+    }
+
+    function updateFeedHealth(){
+        const set=(id,ok)=>{const e=document.getElementById(id);if(e)e.textContent=ok?'● READY':'● NO DATA';};
+        set('healthWeather',Boolean(document.getElementById('temperature')?.textContent && document.getElementById('temperature').textContent!=='—'));
+        set('healthEarthquakes',lastEarthquakes.length>0);
+        set('healthNASA',lastNaturalEvents.length>0);
+        set('healthRisk',currentRiskLevel!=='UNKNOWN');
+        const all=[lastEarthquakes.length>0,lastNaturalEvents.length>0,currentRiskLevel!=='UNKNOWN'];
+        const status=document.getElementById('feedHealthStatus');
+        if(status)status.textContent=all.every(Boolean)?'ALL FEEDS READY':all.some(Boolean)?'PARTIAL':'WAITING';
+    }
+
+    function updateCommandSystems(){
+        updateCommandCenter();
+        updateFeedHealth();
+    }
+
+
+
+    /* =====================================================
+       PHASE 63–66 INTELLIGENCE SUITE
+    ===================================================== */
+    function eventTimestamp(x){
+        const raw=x.timestamp||x.time||x.date||x.dateText;
+        if(!raw)return null;
+        const t=Date.parse(raw);
+        return Number.isFinite(t)?t:null;
+    }
+
+    function updateTimeWindowAnalytics(){
+        const now=Date.now(), all=buildEventRecords();
+        let h1=0,h6=0,h24=0,older=0;
+        all.forEach(x=>{const t=eventTimestamp(x);if(!t){older++;return;}const age=now-t;if(age>=0&&age<=3600000)h1++;else if(age<=21600000)h6++;else if(age<=86400000)h24++;else older++;});
+        const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+        set('time1h',h1);set('time6h',h6);set('time24h',h24);set('timeOlder',older);
+        const mx=Math.max(1,h1,h6,h24);[['timeBar1h',h1],['timeBar6h',h6],['timeBar24h',h24]].forEach(([id,v])=>{const e=document.getElementById(id);if(e)e.style.width=Math.round(v/mx*100)+'%';});
+        set('timeBar1hVal',h1);set('timeBar6hVal',h6);set('timeBar24hVal',h24);
+        set('timelineStatus',`${all.length} SIGNALS · TIME WINDOW`);
+    }
+
+    function updateLocationSnapshot(){
+        const all=buildEventRecords();
+        const nearest=all[0];
+        const within100=all.filter(x=>x.distance<=100).length;
+        const within500=all.filter(x=>x.distance<=500).length;
+        const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+        set('snapLocation',currentLocation);set('snapCoords',`${currentLat.toFixed(4)}, ${currentLon.toFixed(4)}`);set('snapRisk',`${currentRiskScore} · ${currentRiskLevel}`);set('snap100',within100);set('snap500',within500);set('snapNearest',nearest?`${nearest.distance.toFixed(0)} km · ${nearest.severity}`:'—');
+    }
+
+    function exportLocationSnapshot(){
+        const data={generatedAt:new Date().toISOString(),location:currentLocation,latitude:currentLat,longitude:currentLon,riskScore:currentRiskScore,riskLevel:currentRiskLevel,eventsWithin100Km:buildEventRecords().filter(x=>x.distance<=100).length,eventsWithin500Km:buildEventRecords().filter(x=>x.distance<=500).length,nearestSignal:buildEventRecords()[0]||null};
+        const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`satellite-bharat-location-${currentLocation.replace(/[^a-z0-9]+/gi,'-').toLowerCase()}.json`;a.click();URL.revokeObjectURL(a.href);addAudit('EXPORT','OK','Location snapshot exported');
+    }
+
+    function addAudit(action,status,message){
+        const box=document.getElementById('auditLog');if(!box)return;
+        if(box.querySelector('.muted'))box.innerHTML='';
+        const cls=status==='OK'?'audit-ok':status==='WARN'?'audit-warn':'audit-bad';
+        const time=new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+        const row=document.createElement('div');row.className='audit-row';row.innerHTML=`<span>${time}</span><span class="${cls}">${escapeHTML(status)}</span><span>${escapeHTML(action)} — ${escapeHTML(message)}</span>`;box.prepend(row);
+        while(box.children.length>30)box.lastElementChild.remove();
+        const st=document.getElementById('auditStatus');if(st)st.textContent='LIVE LOG';
+    }
+
+    function updateIntelligenceSuite(){
+        updateTimeWindowAnalytics();
+        updateLocationSnapshot();
+        updateSituationBrief();
+    }
+
+    /* =====================================================
+       PHASE 63–66 INTELLIGENCE SUITE
+    ===================================================== */
+    function updateSituationBrief(){
+        const r=buildEventRecords();
+        const eq=r.filter(x=>x.type==='earthquake').length;
+        const nat=r.filter(x=>x.type==='natural').length;
+        const high=r.filter(x=>x.severity==='high').length;
+        const med=r.filter(x=>x.severity==='medium').length;
+        const nearest=r[0];
+        const risk=Number(currentRiskScore)||0;
+        const watch=high>0||risk>=55?'HIGH':(med>0||risk>=25?'MEDIUM':'LOW');
+        const parts=[];
+        parts.push(`<b>${escapeHTML(currentLocation)}</b> is currently under <b>${watch} watch</b> with a dashboard risk score of <b>${risk}</b>.`);
+        parts.push(`The loaded feeds contain <b>${eq}</b> earthquake and <b>${nat}</b> natural-event signal${eq+nat===1?'':'s'}.`);
+        if(nearest) parts.push(`Nearest loaded signal: <b>${escapeHTML(nearest.title)}</b>, approximately <b>${nearest.distance.toFixed(0)} km</b> away.`);
+        else parts.push('No nearby signal is currently available in the loaded feeds.');
+        if(high>0) parts.push(`<b>${high}</b> high-priority signal${high===1?'':'s'} require attention in the dashboard view.`);
+        const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+        set('briefEq',eq);set('briefNat',nat);set('briefHigh',high);set('briefRisk',`${risk} · ${currentRiskLevel}`);
+        const box=document.getElementById('situationBrief');if(box)box.innerHTML=parts.join(' ');
+        const st=document.getElementById('briefStatus');if(st)st.textContent=`${currentLocation.toUpperCase()} · AUTO`;
+        set('distributionStatus',`${r.length} SIGNALS`);
+        const vals=[['distEq',eq,'distEqVal'],['distNat',nat,'distNatVal'],['distHigh',high,'distHighVal'],['distMed',med,'distMedVal']];
+        const mx=Math.max(1, ...vals.map(x=>x[1]));
+        vals.forEach(([id,v,valId])=>{const e=document.getElementById(id);if(e)e.style.width=Math.round(v/mx*100)+'%';set(valId,v);});
+    }
+
+    function exportIntelligenceBrief(){
+        const r=buildEventRecords();
+        const data={generated_at:new Date().toISOString(),location:{name:currentLocation,latitude:currentLat,longitude:currentLon},risk:{score:currentRiskScore,level:currentRiskLevel},summary:{signals:r.length,earthquakes:r.filter(x=>x.type==='earthquake').length,natural_events:r.filter(x=>x.type==='natural').length,high_priority:r.filter(x=>x.severity==='high').length,medium_priority:r.filter(x=>x.severity==='medium').length,nearest_signal:r[0]||null},disclaimer:'Rule-based dashboard summary from loaded public feeds; not an official emergency warning.'};
+        const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`satellite-bharat-intelligence-${currentLocation.replace(/[^a-z0-9]+/gi,'-').toLowerCase()}.json`;a.click();URL.revokeObjectURL(a.href);addAudit('EXPORT','OK','Intelligence brief exported');
+    }
+
+
+    /* =====================================================
+       FINAL V1.0 RELEASE SYSTEM
+    ===================================================== */
+    function updateFinalReleaseCenter(){
+        const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+        const all=buildEventRecords();
+        set('releaseLocation',currentLocation);
+        set('releaseCoords',`${currentLat.toFixed(4)}, ${currentLon.toFixed(4)}`);
+        set('releaseRisk',String(Number(currentRiskScore)||0));
+        set('releaseRiskMeta',currentRiskLevel||'UNKNOWN');
+        set('releaseSignals',all.length);
+        set('releaseSignalsMeta',`${all.filter(x=>x.severity==='high').length} high-priority`);
+        const status=(id,ok)=>set(id,ok?'READY':'CHECK');
+        status('releaseWeather',!!window.lastWeather);
+        status('releaseEarthquakes',Array.isArray(window.lastEarthquakes));
+        status('releaseNASA',Array.isArray(window.lastNaturalEvents));
+        status('releaseRiskFeed',currentRiskLevel!=='UNKNOWN' && currentRiskScore!==null);
+        set('releaseStatus','VERSION 1.0 · '+new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'}));
+    }
+
+    function exportFinalSnapshot(){
+        const records=buildEventRecords();
+        const payload={
+            product:'Satellite Bharat', version:'1.0', phase:'FINAL-V1.0',
+            tagline:'धरती की हर हलचल, एक जगह।', generated_at:new Date().toISOString(),
+            location:{name:currentLocation,latitude:currentLat,longitude:currentLon},
+            risk:{score:currentRiskScore,level:currentRiskLevel},
+            signals:{total:records.length,earthquakes:records.filter(x=>x.type==='earthquake').length,natural_events:records.filter(x=>x.type==='natural').length,high_priority:records.filter(x=>x.severity==='high').length,medium_priority:records.filter(x=>x.severity==='medium').length},
+            nearest_signal:records[0]||null,
+            disclaimer:'Rule-based dashboard analytics from loaded public feeds; not an official emergency warning.'
+        };
+        const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+        const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='satellite-bharat-final-snapshot.json';a.click();URL.revokeObjectURL(a.href);
+        addAudit('EXPORT','OK','Final release snapshot exported');
+    }
+
+    function scrollToTopDashboard(){window.scrollTo({top:0,behavior:'smooth'});}
+
+
+    /* =====================================================
+       FINAL V1.0 RELEASE CENTER
+    ===================================================== */
+    const operationsStartedAt = Date.now();
+    let operationsLastRefresh = null;
+
+    function formatUptime(ms){
+        const total=Math.max(0,Math.floor(ms/1000));
+        const h=String(Math.floor(total/3600)).padStart(2,'0');
+        const m=String(Math.floor((total%3600)/60)).padStart(2,'0');
+        const sec=String(total%60).padStart(2,'0');
+        return `${h}:${m}:${sec}`;
+    }
+
+    function updateOperationsClock(){
+        const e=document.getElementById('opsUptime');
+        if(e)e.textContent=formatUptime(Date.now()-operationsStartedAt);
+        const sig=document.getElementById('opsSignals');
+        if(sig && typeof buildEventRecords==='function') sig.textContent=buildEventRecords().length;
+    }
+
+    async function runFinalHealthCheck(){
+        const checks=[
+          ['qaWeather','/api/weather?lat='+currentLat+'&lon='+currentLon],
+          ['qaEarthquakes','/api/earthquakes'],
+          ['qaNASA','/api/eonet?limit=5'],
+          ['qaRisk','/api/risk?lat='+currentLat+'&lon='+currentLon]
+        ];
+        let passed=0;
+        for(const [id,url] of checks){
+          const el=document.getElementById(id);
+          if(el)el.textContent='CHECKING…';
+          try{
+            const r=await fetch(url,{cache:'no-store'});
+            const ok=r.ok;
+            if(ok)passed++;
+            if(el){el.textContent=ok?'OK':'HTTP '+r.status;el.className=ok?'qa-ok':'qa-warn';}
+          }catch(e){
+            if(el){el.textContent='OFFLINE';el.className='qa-warn';}
+          }
+        }
+        const map=document.getElementById('qaMap');
+        if(map){const ok=!!window.L;map.textContent=ok?'READY':'CHECK';map.className=ok?'qa-ok':'qa-warn';}
+        const overall=document.getElementById('opsOverall');
+        const status=document.getElementById('qaStatus');
+        const good=passed===checks.length && !!window.L;
+        if(overall){overall.textContent=good?'READY':'CHECK';overall.className=good?'qa-ok':'qa-warn';}
+        if(status){status.textContent=good?'ALL CHECKS PASSED':'SOME CHECKS NEED ATTENTION';status.className=good?'qa-ok':'qa-warn';}
+        addAudit('QA',good?'OK':'WARN',`Final health check: ${passed}/${checks.length} API feeds passed`);
+        updateOperationsClock();
+    }
+
+    function updateOperationsCenter(){
+        const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+        set('opsSignals',typeof buildEventRecords==='function'?buildEventRecords().length:0);
+        set('opsLastLocation',currentLocation);
+        if(operationsLastRefresh) set('opsLastRefresh',operationsLastRefresh.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'}));
+    }
+
+    function exportOperationsReport(){
+        const payload={
+          product:'Satellite Bharat',version:'1.0',phase:'FINAL-V1.0',
+          generated_at:new Date().toISOString(),
+          location:{name:currentLocation,latitude:currentLat,longitude:currentLon},
+          feeds:{weather:!!window.lastWeather,earthquakes:Array.isArray(window.lastEarthquakes),nasa:Array.isArray(window.lastNaturalEvents),risk:currentRiskLevel!=='UNKNOWN' && currentRiskScore!==null,map:!!window.L},
+          signals:typeof buildEventRecords==='function'?buildEventRecords().length:0,
+          risk:{score:currentRiskScore,level:currentRiskLevel},
+          note:'Operational QA report for the Satellite Bharat dashboard; not an official emergency warning.'
+        };
+        const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+        const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='satellite-bharat-qa-report.json';a.click();URL.revokeObjectURL(a.href);
+        addAudit('EXPORT','OK','QA report exported');
+    }
+
+    setInterval(updateOperationsClock,1000);
+
+    /* =====================================================
+       LOAD EVERYTHING
+    ===================================================== */
+
+    async function loadAll() {
+        setStatus("UPDATING...", true);
+
+        const typedLocation =
+            document.getElementById("locationInput").value.trim();
+
+        if (typedLocation && typedLocation !== currentLocation) {
+            try {
+                const geo = await getJSON(
+                    `/api/location-search?q=${encodeURIComponent(typedLocation)}`
+                );
+
+                if (geo.results && geo.results.length) {
+                    const first = geo.results[0];
+                    currentLocation = first.name || typedLocation;
+                    currentLat = Number(first.latitude);
+                    currentLon = Number(first.longitude);
+                } else {
+                    setSearchStatus(`Location not found: ${typedLocation}`, true);
+                    setStatus("LOCATION NOT FOUND", false);
+                    return;
+                }
+            } catch (error) {
+                console.error(error);
+                setSearchStatus("Could not resolve location.", true);
+                setStatus("LOCATION ERROR", false);
+                return;
+            }
+        }
+
+        document.getElementById("locationInput").value = currentLocation;
+        document.getElementById("locationName").textContent = currentLocation;
+        document.getElementById("latitude").textContent = currentLat.toFixed(4);
+        document.getElementById("longitude").textContent = currentLon.toFixed(4);
+
+        updateTime();
+        initMaps();
+
+        await Promise.allSettled([
+            loadWeather(),
+            loadEarthquakes(),
+            loadEonet(),
+            loadRisk(),
+            loadAlerts(),
+            loadCorrelation(),
+            loadNews(),
+            loadSatellite()
+        ]);
+
+        updateMaps();
+        updateCommandSystems();
+        updateIntelligenceSuite();
+        updateFinalReleaseCenter();
+        operationsLastRefresh = new Date();
+        updateOperationsCenter();
+        addAudit("REFRESH", "OK", `Dashboard refreshed for ${currentLocation}`);
+        setStatus("SYSTEM ONLINE", true);
+        updateNearby();
+        renderEventTable();
+        updateMonitorClock();
+    }
+
+    async function refreshDashboard() {
+        const btn = document.getElementById("refreshButton");
+        btn.classList.add("spinning");
+        btn.disabled = true;
+
+        try {
+            refreshCountdown=60;
+            await loadAll();
+        } finally {
+            btn.classList.remove("spinning");
+            btn.disabled = false;
+        }
+    }
+
+    /* =====================================================
+       ENTER KEY SEARCH
+    ===================================================== */
+
+    document
+        .getElementById("locationInput")
+        .addEventListener("keydown", function(event) {
+            if (event.key === "Enter") {
+                searchLocation();
+            }
+        });
+
+    /* =====================================================
+       START
+    ===================================================== */
+
+    loadAll();
+    updateOperationsCenter();
+    startMonitoringClock();
+
+
+    /* =====================================================
+       AUTO REFRESH
+       60 SECONDS
+    ===================================================== */
+
+
+
+</script>
+
+</body>
+</html>
